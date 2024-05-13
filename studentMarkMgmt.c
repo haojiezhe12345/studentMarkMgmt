@@ -368,7 +368,7 @@ int students_forEach(int (*callback)(node **, node *, int, va_list), ...)
 
 int student_print(node **pCurrentList, node *p, int index, va_list args)
 {
-    printf("%llu\t%s\n", p->value.id, p->value.name);
+    printf("%llu\t%s\t%s\t%s\t%d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
     return 0;
 }
 
@@ -391,6 +391,101 @@ int student_delete(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
+int student_modify_info(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.id == va_arg(args, unsigned long long))
+    {
+        char *str;
+
+        printf("Name (leave blank for %s): ", p->value.name);
+        str = inputStr("", 32);
+        if (str[0] != '\0')
+        {
+            strcpy(p->value.name, str);
+        }
+
+        while (1)
+        {
+            printf("Gender (1=Male, 2=Female, leave blank for %s): ", p->value.gender == 1 ? "Male" : "Female");
+            str = inputStr("", 1);
+            if (str[0] == '1' || str[0] == '2')
+            {
+                p->value.gender = str[0] - '0';
+                break;
+            }
+            // knwon issue: entering even length of string causes the last input to be `\0`, which leaves this unchanged
+            else if (str[0] == '\0')
+            {
+                break;
+            }
+            else
+            {
+                printf("Invalid choice!\n");
+            }
+        }
+
+        printf("Major (leave blank for %s): ", p->value.major);
+        str = inputStr("", 64);
+        if (str[0] != '\0')
+        {
+            strcpy(p->value.major, str);
+        }
+
+        while (1)
+        {
+            printf("Class (leave blank for %d): ", p->value.classid);
+            str = inputStr("", 32);
+            if (str[0] != '\0')
+            {
+                unsigned long long newid;
+                sscanf(str, "%llu", &newid);
+                if ((1 <= newid && newid <= 99))
+                {
+                    p->value.classid = newid;
+                    break;
+                }
+                else
+                {
+                    printf("Value should be between 1 and 99!\n");
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (*pCurrentList == stu_postgraduate)
+        {
+            printf("Research direction (leave blank for %s): ", p->value.direction);
+            str = inputStr("", 64);
+            if (str[0] != '\0')
+            {
+                strcpy(p->value.direction, str);
+            }
+
+            printf("Tutor (leave blank for %s): ", p->value.tutor);
+            str = inputStr("", 32);
+            if (str[0] != '\0')
+            {
+                strcpy(p->value.tutor, str);
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
+
+int student_modify_marks(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.id == va_arg(args, unsigned long long))
+    {
+
+        return 1;
+    }
+    return 0;
+}
+
 int main()
 {
     // load database from file
@@ -403,24 +498,26 @@ int main()
     // cmd input loop
     while (1)
     {
-        char *cmds = inputStr("> ", 32);
+        char *cmds = inputStr("> ", 64);
 
         if (cmds[0] == '\0')
         {
             continue;
         }
 
-        char cmd[32];
+        char cmd[64];
         sscanf(cmds, "%s", cmd);
 
         if (strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0)
         {
-            printf("h, help          Show help\n");
-            printf("l, ls, list      List students\n");
-            printf("a, add           Add student\n");
-            printf("m, mod, modify   Modify student\n");
-            printf("d, del, delete   Delete student\n");
-            printf("q, quit, exit    Exit program\n");
+            printf("h, help           Show help\n");
+            printf("l, ls, list       List students\n");
+            printf("a, add            Add student\n");
+            printf("m, mod, modify    Modify student\n");
+            printf("d, del, delete    Delete student\n");
+            printf("save              Save databases to file\n");
+            printf("load              Load databases from file\n");
+            printf("q, quit, exit     Exit program\n");
         }
 
         // student list
@@ -481,19 +578,47 @@ int main()
             printf("Student added successfully!\n");
         }
 
-        else if (strcmp(cmd, "d") == 0 || strcmp(cmd, "del") == 0 || strcmp(cmd, "delete") == 0)
+        // student modify
+        else if (strcmp(cmd, "m") == 0 || strcmp(cmd, "mod") == 0 || strcmp(cmd, "modify") == 0)
         {
+            char subcmd[64];
             unsigned long long id;
-            if (sscanf(cmds, "%*s %llu", &id) != 1)
+            int params = sscanf(cmds, "%s %s %llu", cmd, subcmd, &id);
+            if (params == 3 && strcmp(subcmd, "info") == 0)
             {
-                printf("Usage: d, del, delete <Student ID>\n");
+                if (students_forEach(student_modify_info, id))
+                {
+                    printf("Student not found\n");
+                }
             }
-            else
+            else if (params == 3 && strcmp(subcmd, "mark") == 0)
             {
                 if (students_forEach(student_delete, id))
                 {
                     printf("Student not found\n");
                 }
+            }
+            else
+            {
+                printf("modify info <Student ID>    Modify student's basic info\n");
+                printf("modify mark <Student ID>    Modify student's marks\n");
+            }
+        }
+
+        // student delete
+        else if (strcmp(cmd, "d") == 0 || strcmp(cmd, "del") == 0 || strcmp(cmd, "delete") == 0)
+        {
+            unsigned long long id;
+            if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
+            {
+                if (students_forEach(student_delete, id))
+                {
+                    printf("Student not found\n");
+                }
+            }
+            else
+            {
+                printf("Usage: delete <Student ID>\n");
             }
         }
 
