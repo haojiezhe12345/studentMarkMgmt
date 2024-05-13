@@ -399,24 +399,27 @@ int main()
     printf("Loading %s ... ", db_postgraduate);
     printf("%s\n", loadNodes(db_postgraduate, &stu_postgraduate) ? "success" : "fail");
 
-    printf("\nType \"h\" or \"help\" for help\n");
+    printf("\nType \"h\" or \"help\" for help\n\n");
     // cmd input loop
     while (1)
     {
-        char *cmd = inputStr("> ", 32);
+        char *cmds = inputStr("> ", 32);
 
-        if (cmd[0] == '\0')
+        if (cmds[0] == '\0')
         {
             continue;
         }
-        else if (strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0)
+
+        char cmd[32];
+        sscanf(cmds, "%s", cmd);
+
+        if (strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0)
         {
             printf("h, help          Show help\n");
-            printf("l, ls, list      List all students\n");
+            printf("l, ls, list      List students\n");
             printf("a, add           Add student\n");
             printf("m, mod, modify   Modify student\n");
             printf("d, del, delete   Delete student\n");
-            printf("i, info          Get student info\n");
             printf("q, quit, exit    Exit program\n");
         }
 
@@ -480,10 +483,17 @@ int main()
 
         else if (strcmp(cmd, "d") == 0 || strcmp(cmd, "del") == 0 || strcmp(cmd, "delete") == 0)
         {
-            unsigned long long id = inputNum("Enter student ID: ", 0, 999999999999ULL);
-            if (students_forEach(student_delete, id))
+            unsigned long long id;
+            if (sscanf(cmds, "%*s %llu", &id) != 1)
             {
-                printf("Student not found\n");
+                printf("Usage: d, del, delete <Student ID>\n");
+            }
+            else
+            {
+                if (students_forEach(student_delete, id))
+                {
+                    printf("Student not found\n");
+                }
             }
         }
 
@@ -527,5 +537,7 @@ int main()
         {
             printf("Command not recognized\n");
         }
+
+        printf("\n");
     }
 }
