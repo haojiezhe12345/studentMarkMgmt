@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdarg.h>
 
 #define db_undergraduate "db_undergraduate.bin"
 #define db_postgraduate "db_postgraduate.bin"
@@ -35,6 +36,7 @@ typedef struct node
 node *getLastNode(node *head)
 {
     node *p = head;
+    // `p != NULL` checks if the head pointer is null (length = 0)
     while (p != NULL && p->next != NULL)
     {
         p = p->next;
@@ -47,25 +49,31 @@ node *getNodeAtIndex(node *head, int index)
     node *p = head;
     for (int i = 0; p != NULL; i++)
     {
+        // found node
         if (i == index)
         {
             return p;
         }
         p = p->next;
     }
+    // node not found
     return NULL;
 }
 
 void appendNode(node **head, nodeValue value)
 {
+    // init node
     node *p = (node *)malloc(sizeof(node));
     p->value = value;
     p->next = NULL;
+    // get last node
     node *pLast = getLastNode(*head);
+    // length = 0, add to head pointer
     if (pLast == NULL)
     {
         *head = p;
     }
+    // length > 0, append to last node->next
     else
     {
         pLast->next = p;
@@ -83,6 +91,7 @@ void insertNodeAfter(node *p0, nodeValue value)
 void insertNodeAtIndex(node **head, int index, nodeValue value)
 {
     node *p = *head;
+    // insert at head
     if (index == 0)
     {
         node *p = (node *)malloc(sizeof(node));
@@ -91,6 +100,7 @@ void insertNodeAtIndex(node **head, int index, nodeValue value)
         *head = p;
         return;
     }
+    // insert at index (loop index `i` starts from 1)
     for (int i = 1; p != NULL; i++)
     {
         if (i == index)
@@ -112,6 +122,7 @@ void deleteNodeAfter(node *p)
 void deleteNodeAtIndex(node **head, int index)
 {
     node *p = *head;
+    // if index = 0, delete first node
     if (index == 0)
     {
         node *pDel = *head;
@@ -119,6 +130,8 @@ void deleteNodeAtIndex(node **head, int index)
         free(pDel);
         return;
     }
+    // if index > 1, start looping from first node
+    // `i` starts from 1, because we have to use deleteNodeAfter() to delete a node
     for (int i = 1; p->next != NULL; i++)
     {
         if (i == index)
@@ -146,6 +159,7 @@ void saveNodes(const char *file, node *head)
 {
     FILE *fp = fopen(file, "wb");
     node *p = head;
+    // dump all nodes from memory
     while (p != NULL)
     {
         fwrite(&p->value, sizeof(p->value), 1, fp);
@@ -157,19 +171,22 @@ void saveNodes(const char *file, node *head)
 int loadNodes(const char *file, node **head)
 {
     FILE *fp = fopen(file, "rb");
+    // file not found
     if (fp == NULL)
     {
-        return -1;
+        return 0;
     }
 
+    // delete all old nodes
     destroyList(head);
+    // load file into memory
     nodeValue v;
     while (fread(&v, sizeof(v), 1, fp) == 1)
     {
         appendNode(head, v);
     }
     fclose(fp);
-    return 0;
+    return 1;
 }
 
 void swapNodeValues(node **head, int index1, int index2)
@@ -226,11 +243,11 @@ void bubbleSort(node **head)
 char *inputStr(const char *msg, int len)
 {
     printf(msg);
-    // to let fgets() read 1 char from stdin, you must give it a length of 3, because '\n\0' is counted
-    // here, 'len + 2' is added to prevent overflow errors
+    // to let fgets() read 1 char from stdin, you must give it a length of 3, because `\n\0` is counted
+    // here, `len + 2` is added to prevent overflow errors
     char *str = (char *)malloc(sizeof(char) * (len + 2));
     fgets(str, len + 2, stdin); // fixed length, may cause buffer overflow! consider doubling malloc when EOF not found
-    // remove the '\n' at the end
+    // remove the `\n` at the end
     if (str[strlen(str) - 1] == '\n')
     {
         str[strlen(str) - 1] = '\0';
@@ -245,7 +262,9 @@ unsigned long long inputNum(const char *msg, unsigned long long min, unsigned lo
     while (1)
     {
         char *str = inputStr(msg, 32);
+        // str to int
         sscanf(str, "%llu", &num);
+        // check range
         if ((min <= num && num <= max))
         {
             break;
@@ -265,6 +284,7 @@ int inputSelect(const char *msg, int range)
     while (1)
     {
         ch = inputStr(msg, 1);
+        // check range
         if ('1' <= *ch && *ch <= '0' + range)
         {
             break;
@@ -291,15 +311,96 @@ int inputConfirm(const char *msg)
     }
 }
 
+//
+// functions specific to students
+//
+
+// declare node lists
+node *stu_undergraduate = NULL;
+node *stu_postgraduate = NULL;
+
+// loop over students and calls `callback` function on each loop
+// returns 1 if looped completely, 0 if interrupted
+int students_forEach(int (*callback)(node **, node *, int, va_list), ...)
+{
+    // pointer for looping
+    node *p = stu_undergraduate;
+    // current working list
+    node **pCurrentList = &stu_undergraduate;
+    int index = 0;
+    while (1)
+    {
+        if (p != NULL)
+        {
+            // start parsing varaible args
+            va_list args;
+            va_start(args, callback);
+            // if callback returns 1, quit looping and return 0
+            if (callback(pCurrentList, p, index, args))
+            {
+                return 0;
+            }
+            // clean up variable args
+            va_end(args);
+            // head to next node
+            p = p->next;
+            index++;
+        }
+        // reach end of list
+        else
+        {
+            // switch to postgraduate list
+            if (*pCurrentList == stu_undergraduate && stu_postgraduate != NULL)
+            {
+                p = stu_postgraduate;
+                pCurrentList = &stu_postgraduate;
+                index = 0;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    // loop fully completed
+    return 1;
+}
+
+int student_print(node **pCurrentList, node *p, int index, va_list args)
+{
+    printf("%llu\t%s\n", p->value.id, p->value.name);
+    return 0;
+}
+
+int student_delete(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.id == va_arg(args, unsigned long long))
+    {
+        printf("Delete student %llu %s? (y/N): ", p->value.id, p->value.name);
+        if (inputConfirm(""))
+        {
+            deleteNodeAtIndex(pCurrentList, index);
+            printf("Student deleted successfully!\n");
+        }
+        else
+        {
+            printf("Student not deleted\n");
+        }
+        return 1;
+    }
+    return 0;
+}
+
 int main()
 {
-    node *stu_undergraduate = NULL;
-    node *stu_postgraduate = NULL;
+    // load database from file
+    printf("\nLoading %s ... ", db_undergraduate);
+    printf("%s\n", loadNodes(db_undergraduate, &stu_undergraduate) ? "success" : "fail");
+    printf("Loading %s ... ", db_postgraduate);
+    printf("%s\n", loadNodes(db_postgraduate, &stu_postgraduate) ? "success" : "fail");
 
-    loadNodes(db_undergraduate, &stu_undergraduate);
-    loadNodes(db_postgraduate, &stu_postgraduate);
-
-    printf("Type \"h\" or \"help\" for help\n");
+    printf("\nType \"h\" or \"help\" for help\n");
+    // cmd input loop
     while (1)
     {
         char *cmd = inputStr("> ", 32);
@@ -316,36 +417,13 @@ int main()
             printf("m, mod, modify   Modify student\n");
             printf("d, del, delete   Delete student\n");
             printf("i, info          Get student info\n");
-
-            printf("max              Show the person with the max wage\n");
-            printf("avg-up           Show person count whose wage is more than average\n");
-            printf("stress           Add N persons for stress test\n");
             printf("q, quit, exit    Exit program\n");
         }
 
         // student list
         else if (strcmp(cmd, "l") == 0 || strcmp(cmd, "ls") == 0 || strcmp(cmd, "list") == 0)
         {
-            node *p = stu_undergraduate;
-            while (1)
-            {
-                printf("%llu\t%s\n", p->value.id, p->value.name);
-                if (p->next == NULL)
-                {
-                    if (p == getLastNode(stu_undergraduate))
-                    {
-                        p = stu_postgraduate;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                else
-                {
-                    p = p->next;
-                }
-            }
+            students_forEach(student_print);
         }
 
         // student add
@@ -403,61 +481,25 @@ int main()
         else if (strcmp(cmd, "d") == 0 || strcmp(cmd, "del") == 0 || strcmp(cmd, "delete") == 0)
         {
             unsigned long long id = inputNum("Enter student ID: ", 0, 999999999999ULL);
-
-            node *p = stu_undergraduate;
-            node **pCurrentList = &stu_undergraduate;
-            int index = 0;
-            while (1)
+            if (students_forEach(student_delete, id))
             {
-                if (p->value.id == id)
-                {
-                    printf("Delete student %llu %s? (y/N): ", p->value.id, p->value.name);
-                    if (inputConfirm(""))
-                    {
-                        deleteNodeAtIndex(pCurrentList, index);
-                        printf("Student deleted successfully!\n");
-                    }
-                    else
-                    {
-                        printf("Student not deleted\n");
-                    }
-                    break;
-                }
-                if (p->next == NULL)
-                {
-                    if (*pCurrentList == stu_undergraduate)
-                    {
-                        p = stu_postgraduate;
-                        pCurrentList = &stu_postgraduate;
-                        index = 0;
-                    }
-                    else
-                    {
-                        printf("Student not found\n");
-                        break;
-                    }
-                }
-                else
-                {
-                    p = p->next;
-                    index++;
-                }
+                printf("Student not found\n");
             }
         }
 
-        else if (strcmp(cmd, "c") == 0 || strcmp(cmd, "clear") == 0)
+        else if (strcmp(cmd, "clear") == 0)
         {
             destroyList(&stu_undergraduate);
             destroyList(&stu_postgraduate);
         }
 
-        else if (strcmp(cmd, "s") == 0 || strcmp(cmd, "save") == 0)
+        else if (strcmp(cmd, "save") == 0)
         {
             saveNodes(db_undergraduate, stu_undergraduate);
             saveNodes(db_postgraduate, stu_postgraduate);
         }
 
-        else if (strcmp(cmd, "l") == 0 || strcmp(cmd, "load") == 0)
+        else if (strcmp(cmd, "load") == 0)
         {
             loadNodes(db_undergraduate, &stu_undergraduate);
             loadNodes(db_postgraduate, &stu_postgraduate);
