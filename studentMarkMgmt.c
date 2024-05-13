@@ -223,8 +223,9 @@ void bubbleSort(node **head)
 }
 
 // input a string from stdin, returns the string
-char *inputStr(int len)
+char *inputStr(const char *msg, int len)
 {
+    printf(msg);
     // to let fgets() read 1 char from stdin, you must give it a length of 3, because '\n\0' is counted
     // here, 'len + 2' is added to prevent overflow errors
     char *str = (char *)malloc(sizeof(char) * (len + 2));
@@ -237,21 +238,40 @@ char *inputStr(int len)
     return str;
 }
 
-// input asking for a selection
+// input a number between range
+unsigned long long inputNum(const char *msg, unsigned long long min, unsigned long long max)
+{
+    unsigned long long num;
+    while (1)
+    {
+        char *str = inputStr(msg, 32);
+        sscanf(str, "%llu", &num);
+        if ((min <= num && num <= max))
+        {
+            break;
+        }
+        else
+        {
+            printf("Value should be between %llu and %llu!\n", min, max);
+        }
+    }
+    return num;
+}
+
+// input asking for a selection (max 9 choices)
 int inputSelect(const char *msg, int range)
 {
     char *ch;
     while (1)
     {
-        printf(msg);
-        ch = inputStr(1);
+        ch = inputStr(msg, 1);
         if ('1' <= *ch && *ch <= '0' + range)
         {
             break;
         }
         else
         {
-            printf("Must be 1 to %d!\n", range);
+            printf("Invalid choice!\n");
         }
     }
     return *ch - '0';
@@ -260,9 +280,8 @@ int inputSelect(const char *msg, int range)
 // input confirmation (y/N)
 int inputConfirm(const char *msg)
 {
-    printf(msg);
-    char ch = inputStr(1);
-    if (ch == 'y' || ch == 'Y')
+    char *ch = inputStr(msg, 1);
+    if (*ch == 'y' || *ch == 'Y')
     {
         return 1;
     }
@@ -283,8 +302,7 @@ int main()
     printf("Type \"h\" or \"help\" for help\n");
     while (1)
     {
-        printf("> ");
-        char *cmd = inputStr(32);
+        char *cmd = inputStr("> ", 32);
 
         if (cmd[0] == '\0')
         {
@@ -305,6 +323,7 @@ int main()
             printf("q, quit, exit    Exit program\n");
         }
 
+        // student list
         else if (strcmp(cmd, "l") == 0 || strcmp(cmd, "ls") == 0 || strcmp(cmd, "list") == 0)
         {
             node *p = stu_undergraduate;
@@ -329,30 +348,24 @@ int main()
             }
         }
 
+        // student add
         else if (strcmp(cmd, "a") == 0 || strcmp(cmd, "add") == 0)
         {
             int stuType = inputSelect("1. Undergraduate\n2. Postgraduate\nSelect student type: ", 2);
 
             nodeValue stu;
 
-            printf("Name: ");
-            scanf("%s", stu.name);
-
+            // basic info
+            strcpy(stu.name, inputStr("Name: ", 32));
             stu.gender = inputSelect("Gender (1=Male, 2=Female): ", 2);
+            strcpy(stu.major, inputStr("Major: ", 64));
+            stu.classid = inputNum("Class: ", 1, 99);
 
-            printf("Major: ");
-            scanf("%s", stu.major);
-
-            printf("Class: ");
-            scanf("%d", &stu.classid);
-
+            // postgraduate-specified info
             if (stuType == 2)
             {
-                printf("Research direction: ");
-                scanf("%s", stu.direction);
-
-                printf("Tutor: ");
-                scanf("%s", stu.tutor);
+                strcpy(stu.direction, inputStr("Research direction: ", 64));
+                strcpy(stu.tutor, inputStr("Tutor: ", 32));
             }
             else
             {
@@ -360,11 +373,14 @@ int main()
                 stu.tutor[0] = '\0';
             }
 
+            // get current time
             time_t now = time(NULL);
             struct tm *time = localtime(&now);
 
+            // student id format: year[4] + type[1] + major[3] + class[2] + order[2]
             stu.id = (time->tm_year + 1900) * 100000000ULL + stuType * 10000000ULL + 0 * 10000 + stu.classid * 100 + 1;
 
+            // init marks
             stu.mark_math = -1;
             stu.mark_eng = -1;
             stu.mark_c = -1;
@@ -386,11 +402,10 @@ int main()
 
         else if (strcmp(cmd, "d") == 0 || strcmp(cmd, "del") == 0 || strcmp(cmd, "delete") == 0)
         {
-            unsigned long long id = 0;
-            printf("Enter student ID: ");
-            scanf("%llu", &id);
+            unsigned long long id = inputNum("Enter student ID: ", 0, 999999999999ULL);
 
             node *p = stu_undergraduate;
+            node **pCurrentList = &stu_undergraduate;
             int index = 0;
             while (1)
             {
@@ -399,7 +414,7 @@ int main()
                     printf("Delete student %llu %s? (y/N): ", p->value.id, p->value.name);
                     if (inputConfirm(""))
                     {
-                        deleteNodeAtIndex(&p, index);
+                        deleteNodeAtIndex(pCurrentList, index);
                         printf("Student deleted successfully!\n");
                     }
                     else
@@ -410,9 +425,10 @@ int main()
                 }
                 if (p->next == NULL)
                 {
-                    if (p == getLastNode(stu_undergraduate))
+                    if (*pCurrentList == stu_undergraduate)
                     {
                         p = stu_postgraduate;
+                        pCurrentList = &stu_postgraduate;
                         index = 0;
                     }
                     else
@@ -449,9 +465,7 @@ int main()
 
         else if (strcmp(cmd, "batch") == 0)
         {
-            int count = 0;
-            printf("Number of students to add: ");
-            scanf("%d", &count);
+            int count = inputNum("Number of students to add: ", 0, 99999999);
             for (int i = 0; i < count; i++)
             {
                 printf("Adding %d / %d\r", i + 1, count);
