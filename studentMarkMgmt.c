@@ -471,7 +471,28 @@ int student_modify(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
-int student_marks_add(node **pCurrentList, node *p, int index, va_list args)
+int student_marks_show(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.id == va_arg(args, unsigned long long))
+    {
+        student_print(pCurrentList, p, index, args);
+        if (*pCurrentList == stu_undergraduate)
+        {
+            printf("Math:          %d\n", p->value.mark_math);
+            printf("English:       %d\n", p->value.mark_eng);
+            printf("C Programming: %d\n", p->value.mark_c);
+        }
+        else if (*pCurrentList == stu_postgraduate)
+        {
+            printf("Overall: %d\n", p->value.mark_overall);
+            printf("Paper:   %d\n", p->value.mark_paper);
+        }
+        return 1;
+    }
+    return 0;
+}
+
+int student_marks_update(node **pCurrentList, node *p, int index, va_list args)
 {
     if (p->value.id == va_arg(args, unsigned long long))
     {
@@ -624,15 +645,23 @@ int main()
             char subcmd[64];
             unsigned long long id;
             int params = sscanf(cmds, "%s %s %llu", cmd, subcmd, &id);
-            if (params == 3 && strcmp(subcmd, "update") == 0)
+            if (params == 3 && strcmp(subcmd, "show") == 0)
             {
-                if (students_forEach(student_marks_add, id))
+                if (students_forEach(student_marks_show, id))
+                {
+                    printf("Student not found\n");
+                }
+            }
+            else if (params == 3 && strcmp(subcmd, "update") == 0)
+            {
+                if (students_forEach(student_marks_update, id))
                 {
                     printf("Student not found\n");
                 }
             }
             else
             {
+                printf("marks show <Student ID>    Show student's marks\n");
                 printf("marks update <Student ID>    Update student's marks\n");
             }
         }
