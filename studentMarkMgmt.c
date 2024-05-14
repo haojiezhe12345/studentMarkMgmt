@@ -452,7 +452,7 @@ int student_delete(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
-int student_modify_info(node **pCurrentList, node *p, int index, va_list args)
+int student_modify(node **pCurrentList, node *p, int index, va_list args)
 {
     if (p->value.id == va_arg(args, unsigned long long))
     {
@@ -471,11 +471,21 @@ int student_modify_info(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
-int student_modify_marks(node **pCurrentList, node *p, int index, va_list args)
+int student_marks_add(node **pCurrentList, node *p, int index, va_list args)
 {
     if (p->value.id == va_arg(args, unsigned long long))
     {
-
+        if (*pCurrentList == stu_undergraduate)
+        {
+            reInputNum((unsigned long long *)&p->value.mark_math, "Math (leave blank for %d): ", 0, 100);
+            reInputNum((unsigned long long *)&p->value.mark_eng, "English (leave blank for %d): ", 0, 100);
+            reInputNum((unsigned long long *)&p->value.mark_c, "C Programming (leave blank for %d): ", 0, 100);
+        }
+        else if (*pCurrentList == stu_postgraduate)
+        {
+            reInputNum((unsigned long long *)&p->value.mark_overall, "Overall (leave blank for %d): ", 0, 100);
+            reInputNum((unsigned long long *)&p->value.mark_paper, "Paper (leave blank for %d): ", 0, 100);
+        }
         return 1;
     }
     return 0;
@@ -506,23 +516,24 @@ int main()
         if (strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0)
         {
             printf("h, help           Show help\n");
-            printf("l, ls, list       List students\n");
-            printf("a, add            Add student\n");
-            printf("m, mod, modify    Modify student\n");
-            printf("d, del, delete    Delete student\n");
+            printf("ls, list          List students\n");
+            printf("add               Add student\n");
+            printf("mod, modify       Modify student\n");
+            printf("del, delete       Delete student\n");
+            printf("mark, marks       Marks management\n");
             printf("save              Save databases to file\n");
             printf("load              Load databases from file\n");
             printf("q, quit, exit     Exit program\n");
         }
 
         // student list
-        else if (strcmp(cmd, "l") == 0 || strcmp(cmd, "ls") == 0 || strcmp(cmd, "list") == 0)
+        else if (strcmp(cmd, "ls") == 0 || strcmp(cmd, "list") == 0)
         {
             students_forEach(student_print);
         }
 
         // student add
-        else if (strcmp(cmd, "a") == 0 || strcmp(cmd, "add") == 0)
+        else if (strcmp(cmd, "add") == 0)
         {
             int stuType = inputSelect("1. Undergraduate\n2. Postgraduate\nSelect student type: ", 2);
 
@@ -574,34 +585,24 @@ int main()
         }
 
         // student modify
-        else if (strcmp(cmd, "m") == 0 || strcmp(cmd, "mod") == 0 || strcmp(cmd, "modify") == 0)
+        else if (strcmp(cmd, "mod") == 0 || strcmp(cmd, "modify") == 0)
         {
-            char subcmd[64];
             unsigned long long id;
-            int params = sscanf(cmds, "%s %s %llu", cmd, subcmd, &id);
-            if (params == 3 && strcmp(subcmd, "info") == 0)
+            if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
             {
-                if (students_forEach(student_modify_info, id))
-                {
-                    printf("Student not found\n");
-                }
-            }
-            else if (params == 3 && strcmp(subcmd, "mark") == 0)
-            {
-                if (students_forEach(student_delete, id))
+                if (students_forEach(student_modify, id))
                 {
                     printf("Student not found\n");
                 }
             }
             else
             {
-                printf("modify info <Student ID>    Modify student's basic info\n");
-                printf("modify mark <Student ID>    Modify student's marks\n");
+                printf("Usage: modify <Student ID>\n");
             }
         }
 
         // student delete
-        else if (strcmp(cmd, "d") == 0 || strcmp(cmd, "del") == 0 || strcmp(cmd, "delete") == 0)
+        else if (strcmp(cmd, "del") == 0 || strcmp(cmd, "delete") == 0)
         {
             unsigned long long id;
             if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
@@ -614,6 +615,25 @@ int main()
             else
             {
                 printf("Usage: delete <Student ID>\n");
+            }
+        }
+
+        // marks management
+        else if (strcmp(cmd, "mark") == 0 || strcmp(cmd, "marks") == 0)
+        {
+            char subcmd[64];
+            unsigned long long id;
+            int params = sscanf(cmds, "%s %s %llu", cmd, subcmd, &id);
+            if (params == 3 && strcmp(subcmd, "update") == 0)
+            {
+                if (students_forEach(student_marks_add, id))
+                {
+                    printf("Student not found\n");
+                }
+            }
+            else
+            {
+                printf("marks update <Student ID>    Update student's marks\n");
             }
         }
 
