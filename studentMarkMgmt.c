@@ -255,6 +255,16 @@ char *inputStr(const char *msg, int len)
     return str;
 }
 
+void reInputStr(char *target, const char *msg, int len)
+{
+    printf(msg, target);
+    char *str = inputStr("", len);
+    if (*str != '\0')
+    {
+        strcpy(target, str);
+    }
+}
+
 // input a number between range
 unsigned long long inputNum(const char *msg, unsigned long long min, unsigned long long max)
 {
@@ -277,13 +287,40 @@ unsigned long long inputNum(const char *msg, unsigned long long min, unsigned lo
     return num;
 }
 
+void reInputNum(unsigned long long *target, const char *msg, unsigned long long min, unsigned long long max)
+{
+    unsigned long long num;
+    while (1)
+    {
+        printf(msg, *target);
+        char *str = inputStr("", 32);
+        if (*str != '\0')
+        {
+            sscanf(str, "%llu", &num);
+            if ((min <= num && num <= max))
+            {
+                *target = num;
+                break;
+            }
+            else
+            {
+                printf("Value should be between %llu and %llu!\n", min, max);
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+}
+
 // input asking for a selection (max 9 choices)
 int inputSelect(const char *msg, int range)
 {
     char *ch;
     while (1)
     {
-        ch = inputStr(msg, 1);
+        ch = inputStr(msg, 32);
         // check range
         if ('1' <= *ch && *ch <= '0' + range)
         {
@@ -295,6 +332,30 @@ int inputSelect(const char *msg, int range)
         }
     }
     return *ch - '0';
+}
+
+void reInputSelect(int *target, const char *msg, int range)
+{
+    char *ch;
+    while (1)
+    {
+        printf(msg, *target);
+        ch = inputStr("", 32);
+        if ('1' <= *ch && *ch <= '0' + range)
+        {
+            *target = *ch - '0';
+            break;
+        }
+        // knwon issue: entering even length of string causes the last input to be `\0`, which leaves this unchanged
+        else if (*ch == '\0')
+        {
+            break;
+        }
+        else
+        {
+            printf("Invalid choice!\n");
+        }
+    }
 }
 
 // input confirmation (y/N)
@@ -395,81 +456,15 @@ int student_modify_info(node **pCurrentList, node *p, int index, va_list args)
 {
     if (p->value.id == va_arg(args, unsigned long long))
     {
-        char *str;
-
-        printf("Name (leave blank for %s): ", p->value.name);
-        str = inputStr("", 32);
-        if (str[0] != '\0')
-        {
-            strcpy(p->value.name, str);
-        }
-
-        while (1)
-        {
-            printf("Gender (1=Male, 2=Female, leave blank for %s): ", p->value.gender == 1 ? "Male" : "Female");
-            str = inputStr("", 1);
-            if (str[0] == '1' || str[0] == '2')
-            {
-                p->value.gender = str[0] - '0';
-                break;
-            }
-            // knwon issue: entering even length of string causes the last input to be `\0`, which leaves this unchanged
-            else if (str[0] == '\0')
-            {
-                break;
-            }
-            else
-            {
-                printf("Invalid choice!\n");
-            }
-        }
-
-        printf("Major (leave blank for %s): ", p->value.major);
-        str = inputStr("", 64);
-        if (str[0] != '\0')
-        {
-            strcpy(p->value.major, str);
-        }
-
-        while (1)
-        {
-            printf("Class (leave blank for %d): ", p->value.classid);
-            str = inputStr("", 32);
-            if (str[0] != '\0')
-            {
-                unsigned long long newid;
-                sscanf(str, "%llu", &newid);
-                if ((1 <= newid && newid <= 99))
-                {
-                    p->value.classid = newid;
-                    break;
-                }
-                else
-                {
-                    printf("Value should be between 1 and 99!\n");
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
+        reInputStr(p->value.name, "Name (leave blank for %s): ", 32);
+        reInputSelect(&p->value.gender, "Gender (1=Male, 2=Female, leave blank for %d): ", 2);
+        reInputStr(p->value.major, "Major (leave blank for %s): ", 64);
+        reInputNum((unsigned long long *)&p->value.classid, "Class (leave blank for %d): ", 1, 99);
 
         if (*pCurrentList == stu_postgraduate)
         {
-            printf("Research direction (leave blank for %s): ", p->value.direction);
-            str = inputStr("", 64);
-            if (str[0] != '\0')
-            {
-                strcpy(p->value.direction, str);
-            }
-
-            printf("Tutor (leave blank for %s): ", p->value.tutor);
-            str = inputStr("", 32);
-            if (str[0] != '\0')
-            {
-                strcpy(p->value.tutor, str);
-            }
+            reInputStr(p->value.direction, "Research direction (leave blank for %s): ", 64);
+            reInputStr(p->value.tutor, "Tutor (leave blank for %s): ", 32);
         }
         return 1;
     }
