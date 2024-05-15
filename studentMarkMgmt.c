@@ -80,12 +80,8 @@ int main()
                 stu.tutor[0] = '\0';
             }
 
-            // get current time
-            time_t now = time(NULL);
-            struct tm *time = localtime(&now);
-
-            // student id format: year[4] + type[1] + major[3] + class[2] + order[2]
-            stu.id = (time->tm_year + 1900) * 100000000ULL + stuType * 10000000ULL + 0 * 10000 + stu.classid * 100 + 1;
+            // generate id
+            stu.id = generateStudentID(stuType, stu.major, stu.classid);
 
             // init marks
             stu.mark_math = -1;

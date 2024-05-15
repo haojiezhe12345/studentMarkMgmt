@@ -155,4 +155,14 @@ int student_marks_update(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
+// generate student id, format: year[4] + type[1] + major[3] + class[2] + order[2]
+unsigned long long generateStudentID(int type, char *major, int classid)
+{
+    // get current time
+    time_t now = time(NULL);
+    struct tm *time = localtime(&now);
+
+    return (time->tm_year + 1900) * 100000000ULL + type * 10000000ULL + 0 * 10000 + classid * 100 + 1;
+}
+
 #endif

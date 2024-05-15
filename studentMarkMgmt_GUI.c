@@ -123,6 +123,19 @@ void table_reload()
     students_forEach(table_addStudent);
 }
 
+void loadDB()
+{
+    loadNodes(db_undergraduate, &stu_undergraduate);
+    loadNodes(db_postgraduate, &stu_postgraduate);
+    table_reload();
+}
+
+void saveDB()
+{
+    saveNodes(db_undergraduate, stu_undergraduate);
+    saveNodes(db_postgraduate, stu_postgraduate);
+}
+
 LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
@@ -232,6 +245,8 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             hwnd,
             (HMENU)button_next, NULL, NULL);
 
+        loadDB();
+
         break;
 
     case WM_COMMAND:
@@ -267,14 +282,11 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             break;
 
         case button_loadDB:
-            loadNodes(db_undergraduate, &stu_undergraduate);
-            loadNodes(db_postgraduate, &stu_postgraduate);
-            table_reload();
+            loadDB();
             break;
 
         case button_saveDB:
-            saveNodes(db_undergraduate, stu_undergraduate);
-            saveNodes(db_postgraduate, stu_postgraduate);
+            saveDB();
             break;
 
         default:
@@ -465,7 +477,78 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             break;
 
         case IDOK:
-            MessageBox(NULL, "OK!", "Error!", MB_OK | MB_OK);
+            int stuType;
+            if (IsDlgButtonChecked(hwnd, radio_stuAdd_postgraduate))
+            {
+                stuType = 2;
+            }
+            else
+            {
+                stuType = 1;
+            }
+
+            nodeValue stu;
+
+            // name
+            GetWindowText(g_hwndStudentAdd_Name, stu.name, 32);
+
+            // gender
+            if (IsDlgButtonChecked(hwnd, radio_stuAdd_gender_male))
+            {
+                stu.gender = 1;
+            }
+            else if (IsDlgButtonChecked(hwnd, radio_stuAdd_gender_female))
+            {
+                stu.gender = 2;
+            }
+            else
+            {
+                MessageBox(hwnd, "Please select gender!", "", MB_ICONWARNING);
+                break;
+            }
+
+            // major
+            GetWindowText(g_hwndStudentAdd_Major, stu.major, 64);
+
+            // classid
+            char classStr[32];
+            GetWindowText(g_hwndStudentAdd_Class, classStr, 64);
+            sscanf(classStr, "%d", &stu.classid);
+            if (stu.classid < 1 || stu.classid > 99)
+            {
+                MessageBox(hwnd, "Class should be between 1 and 99!", "", MB_ICONWARNING);
+                break;
+            }
+
+            // direction
+            GetWindowText(g_hwndStudentAdd_Direction, stu.direction, 64);
+            // tutor
+            GetWindowText(g_hwndStudentAdd_Tutor, stu.tutor, 32);
+
+            // generate id
+            stu.id = generateStudentID(stuType, stu.major, stu.classid);
+
+            // init marks
+            stu.mark_math = -1;
+            stu.mark_eng = -1;
+            stu.mark_c = -1;
+            stu.mark_overall = -1;
+            stu.mark_paper = -1;
+
+            if (stuType == 1)
+            {
+                appendNode(&stu_undergraduate, stu);
+                saveNodes(db_undergraduate, stu_undergraduate);
+            }
+            else
+            {
+                appendNode(&stu_postgraduate, stu);
+                saveNodes(db_postgraduate, stu_postgraduate);
+            }
+
+            table_reload();
+            ShowWindow(hwnd, SW_HIDE);
+
             break;
 
         case IDCANCEL:
