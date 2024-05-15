@@ -126,7 +126,7 @@ int main()
             unsigned long long id;
             if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
             {
-                if (students_forEach(student_delete, id))
+                if (students_forEach(student_delete_confirm, id))
                 {
                     printf("Student not found\n");
                 }
@@ -159,7 +159,7 @@ int main()
             }
             else
             {
-                printf("marks show <Student ID>    Show student's marks\n");
+                printf("marks show <Student ID>      Show student's marks\n");
                 printf("marks update <Student ID>    Update student's marks\n");
             }
         }

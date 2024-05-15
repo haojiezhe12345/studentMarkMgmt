@@ -64,7 +64,19 @@ int student_print(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
+// delete student by id (no confirmation)
 int student_delete(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.id == va_arg(args, unsigned long long))
+    {
+        deleteNodeAtIndex(pCurrentList, index);
+        return 1;
+    }
+    return 0;
+}
+
+// delete student by id (with confirmation)
+int student_delete_confirm(node **pCurrentList, node *p, int index, va_list args)
 {
     if (p->value.id == va_arg(args, unsigned long long))
     {
