@@ -25,8 +25,8 @@ HWND g_hwndListView;
 #define button_edit 202
 #define button_delete 203
 
-#define button_saveDB 204
-#define button_loadDB 205
+#define button_loadDB 204
+#define button_saveDB 205
 
 #define button_prev 205
 #define button_next 205
@@ -175,22 +175,22 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         CreateWindowEx(
             0,
             "BUTTON",
-            "Save database",
+            "Reload database",
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             16, 400, 128, 24,
             hwnd,
-            (HMENU)button_saveDB,
+            (HMENU)button_loadDB,
             (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
             NULL);
 
         CreateWindowEx(
             0,
             "BUTTON",
-            "Reload database",
+            "Save database",
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             160, 400, 128, 24,
             hwnd,
-            (HMENU)button_loadDB,
+            (HMENU)button_saveDB,
             (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
             NULL);
 
@@ -249,6 +249,11 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             loadNodes(db_undergraduate, &stu_undergraduate);
             loadNodes(db_postgraduate, &stu_postgraduate);
             table_reload();
+            break;
+
+        case button_saveDB:
+            saveNodes(db_undergraduate, stu_undergraduate);
+            saveNodes(db_postgraduate, stu_postgraduate);
             break;
 
         default:
