@@ -12,6 +12,10 @@
 
 int main()
 {
+    printf("\n=======================================");
+    printf("\n Student marks management system - CLI ");
+    printf("\n=======================================\n");
+
     // load database from file
     printf("\nLoading %s ... ", db_undergraduate);
     printf("%s\n", loadNodes(db_undergraduate, &stu_undergraduate) ? "success" : "fail");
