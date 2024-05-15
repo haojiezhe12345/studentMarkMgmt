@@ -33,6 +33,38 @@ HWND g_hwndListView;
 
 // student add window
 HWND g_hwndStudentAdd;
+#define radio_stuAdd_undergraduate 301
+#define radio_stuAdd_postgraduate 302
+HWND g_hwndStudentAdd_Undergraduate;
+HWND g_hwndStudentAdd_Postgraduate;
+
+#define label_stuAdd_name 401
+#define input_stuAdd_name 402
+HWND g_hwndStudentAdd_Name;
+
+#define label_stuAdd_gender 403
+#define radio_stuAdd_gender_male 404
+#define radio_stuAdd_gender_female 405
+HWND g_hwndStudentAdd_Male;
+HWND g_hwndStudentAdd_Female;
+
+#define label_stuAdd_major 406
+#define input_stuAdd_major 407
+HWND g_hwndStudentAdd_Major;
+
+#define label_stuAdd_class 408
+#define input_stuAdd_class 409
+HWND g_hwndStudentAdd_Class;
+
+#define label_stuAdd_direction 410
+#define input_stuAdd_direction 411
+HWND g_hwndStudentAdd_Direction_Label;
+HWND g_hwndStudentAdd_Direction;
+
+#define label_stuAdd_tutor 411
+#define input_stuAdd_tutor 412
+HWND g_hwndStudentAdd_Tutor_Label;
+HWND g_hwndStudentAdd_Tutor;
 
 int table_addStudent(node **pCurrentList, node *p, int index, va_list args)
 {
@@ -104,9 +136,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_EDITLABELS,
             16, 54, 588, 320,
             hwnd,
-            (HMENU)listview_table,
-            GetModuleHandle(NULL),
-            NULL);
+            (HMENU)listview_table, NULL, NULL);
 
         // Enable full-row selection
         ListView_SetExtendedListViewStyle(g_hwndListView, LVS_EX_FULLROWSELECT);
@@ -146,9 +176,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             16, 16, 96, 24,
             hwnd,
-            (HMENU)button_add,
-            (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-            NULL);
+            (HMENU)button_add, NULL, NULL);
 
         CreateWindowEx(
             0,
@@ -157,9 +185,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             128, 16, 96, 24,
             hwnd,
-            (HMENU)button_edit,
-            (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-            NULL);
+            (HMENU)button_edit, NULL, NULL);
 
         CreateWindowEx(
             0,
@@ -168,9 +194,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             240, 16, 96, 24,
             hwnd,
-            (HMENU)button_delete,
-            (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-            NULL);
+            (HMENU)button_delete, NULL, NULL);
 
         CreateWindowEx(
             0,
@@ -179,9 +203,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             16, 400, 128, 24,
             hwnd,
-            (HMENU)button_loadDB,
-            (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-            NULL);
+            (HMENU)button_loadDB, NULL, NULL);
 
         CreateWindowEx(
             0,
@@ -190,9 +212,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             160, 400, 128, 24,
             hwnd,
-            (HMENU)button_saveDB,
-            (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-            NULL);
+            (HMENU)button_saveDB, NULL, NULL);
 
         CreateWindowEx(
             0,
@@ -201,9 +221,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             444, 400, 72, 24,
             hwnd,
-            (HMENU)button_prev,
-            (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-            NULL);
+            (HMENU)button_prev, NULL, NULL);
 
         CreateWindowEx(
             0,
@@ -212,9 +230,8 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             530, 400, 72, 24,
             hwnd,
-            (HMENU)button_next,
-            (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
-            NULL);
+            (HMENU)button_next, NULL, NULL);
+
         break;
 
     case WM_COMMAND:
@@ -226,18 +243,22 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                 g_StudentAddClass,
                 "Add Student",
                 WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
-                CW_USEDEFAULT, CW_USEDEFAULT, 250, 300,
+                CW_USEDEFAULT, CW_USEDEFAULT, 270, 300,
                 hwnd, NULL, NULL, NULL);
             break;
 
         case button_edit:
-            g_hwndStudentAdd = CreateWindowEx(
-                0,
-                g_StudentAddClass,
-                "Edit Student",
-                WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
-                CW_USEDEFAULT, CW_USEDEFAULT, 250, 300,
-                hwnd, NULL, NULL, NULL);
+            unsigned long long id = table_getSelectedStudentID();
+            if (id)
+            {
+                g_hwndStudentAdd = CreateWindowEx(
+                    0,
+                    g_StudentAddClass,
+                    "Edit Student",
+                    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
+                    CW_USEDEFAULT, CW_USEDEFAULT, 270, 300,
+                    hwnd, NULL, NULL, &id);
+            }
             break;
 
         case button_delete:
@@ -280,12 +301,177 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
     switch (msg)
     {
     case WM_CREATE:
+        g_hwndStudentAdd_Undergraduate = CreateWindowEx(
+            0,
+            "BUTTON",
+            "Undergraduate",
+            WS_TABSTOP | WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | WS_GROUP,
+            8, 8, 120, 24,
+            hwnd, (HMENU)radio_stuAdd_undergraduate, NULL, NULL);
+
+        CheckDlgButton(hwnd, radio_stuAdd_undergraduate, BST_CHECKED);
+
+        g_hwndStudentAdd_Postgraduate = CreateWindowEx(
+            0,
+            "BUTTON",
+            "Postgraduate",
+            WS_TABSTOP | WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
+            136, 8, 120, 24,
+            hwnd, (HMENU)radio_stuAdd_postgraduate, NULL, NULL);
+
+        CreateWindowEx(
+            0,
+            "STATIC",
+            "Name",
+            WS_VISIBLE | WS_CHILD,
+            8, 40, 56, 20,
+            hwnd, (HMENU)label_stuAdd_name, NULL, NULL);
+
+        g_hwndStudentAdd_Name = CreateWindowEx(
+            0,
+            "EDIT",
+            "",
+            WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+            72, 40, 184, 20,
+            hwnd, (HMENU)input_stuAdd_name, NULL, NULL);
+
+        CreateWindowEx(
+            0,
+            "STATIC",
+            "Gender",
+            WS_VISIBLE | WS_CHILD,
+            8, 70, 56, 20,
+            hwnd, (HMENU)label_stuAdd_gender, NULL, NULL);
+
+        g_hwndStudentAdd_Male = CreateWindowEx(
+            0,
+            "BUTTON",
+            "Male",
+            WS_TABSTOP | WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON | WS_GROUP,
+            72, 70, 72, 20,
+            hwnd, (HMENU)radio_stuAdd_gender_male, NULL, NULL);
+
+        g_hwndStudentAdd_Female = CreateWindowEx(
+            0,
+            "BUTTON",
+            "Female",
+            WS_TABSTOP | WS_CHILD | WS_VISIBLE | BS_AUTORADIOBUTTON,
+            152, 70, 72, 20,
+            hwnd, (HMENU)radio_stuAdd_gender_female, NULL, NULL);
+
+        CreateWindowEx(
+            0,
+            "STATIC",
+            "Major",
+            WS_VISIBLE | WS_CHILD,
+            8, 100, 56, 20,
+            hwnd, (HMENU)label_stuAdd_major, NULL, NULL);
+
+        g_hwndStudentAdd_Major = CreateWindowEx(
+            0,
+            "EDIT",
+            "",
+            WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+            72, 100, 184, 20,
+            hwnd, (HMENU)input_stuAdd_major, NULL, NULL);
+
+        CreateWindowEx(
+            0,
+            "STATIC",
+            "Class",
+            WS_VISIBLE | WS_CHILD,
+            8, 130, 56, 20,
+            hwnd, (HMENU)label_stuAdd_class, NULL, NULL);
+
+        g_hwndStudentAdd_Class = CreateWindowEx(
+            0,
+            "EDIT",
+            "",
+            WS_TABSTOP | WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL,
+            72, 130, 184, 20,
+            hwnd, (HMENU)input_stuAdd_class, NULL, NULL);
+
+        g_hwndStudentAdd_Direction_Label = CreateWindowEx(
+            0,
+            "STATIC",
+            "Direction",
+            WS_CHILD,
+            8, 160, 56, 20,
+            hwnd, (HMENU)label_stuAdd_direction, NULL, NULL);
+
+        g_hwndStudentAdd_Direction = CreateWindowEx(
+            0,
+            "EDIT",
+            "",
+            WS_TABSTOP | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+            72, 160, 184, 20,
+            hwnd, (HMENU)input_stuAdd_direction, NULL, NULL);
+
+        g_hwndStudentAdd_Tutor_Label = CreateWindowEx(
+            0,
+            "STATIC",
+            "Tutor",
+            WS_CHILD,
+            8, 190, 56, 20,
+            hwnd, (HMENU)label_stuAdd_tutor, NULL, NULL);
+
+        g_hwndStudentAdd_Tutor = CreateWindowEx(
+            0,
+            "EDIT",
+            "",
+            WS_TABSTOP | WS_CHILD | WS_BORDER | ES_AUTOHSCROLL,
+            72, 190, 184, 20,
+            hwnd, (HMENU)input_stuAdd_tutor, NULL, NULL);
+
+        CreateWindowEx(
+            0,
+            "BUTTON",
+            "Cancel",
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            120, 238, 64, 24,
+            hwnd,
+            (HMENU)IDCANCEL, NULL, NULL);
+
+        CreateWindowEx(
+            0,
+            "BUTTON",
+            "OK",
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            192, 238, 64, 24,
+            hwnd,
+            (HMENU)IDOK, NULL, NULL);
 
         break;
 
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
+        case radio_stuAdd_undergraduate:
+        case radio_stuAdd_postgraduate:
+            if (IsDlgButtonChecked(hwnd, radio_stuAdd_postgraduate))
+            {
+                ShowWindow(g_hwndStudentAdd_Direction_Label, SW_SHOW);
+                ShowWindow(g_hwndStudentAdd_Direction, SW_SHOW);
+                ShowWindow(g_hwndStudentAdd_Tutor_Label, SW_SHOW);
+                ShowWindow(g_hwndStudentAdd_Tutor, SW_SHOW);
+            }
+            else
+            {
+                ShowWindow(g_hwndStudentAdd_Direction_Label, SW_HIDE);
+                ShowWindow(g_hwndStudentAdd_Direction, SW_HIDE);
+                ShowWindow(g_hwndStudentAdd_Tutor_Label, SW_HIDE);
+                ShowWindow(g_hwndStudentAdd_Tutor, SW_HIDE);
+            }
+            break;
+
+        case IDOK:
+            MessageBox(NULL, "OK!", "Error!", MB_OK | MB_OK);
+            break;
+
+        case IDCANCEL:
+            ShowWindow(hwnd, SW_HIDE);
+            break;
+
         default:
             break;
         }
@@ -358,8 +544,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     MSG Msg;
     while (GetMessage(&Msg, NULL, 0, 0) > 0)
     {
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
+        if (!IsDialogMessage(g_hwndMainWindow, &Msg) && !IsDialogMessage(g_hwndStudentAdd, &Msg))
+        {
+            TranslateMessage(&Msg);
+            DispatchMessage(&Msg);
+        }
     }
     return Msg.wParam;
 }
