@@ -12,10 +12,12 @@
 #define db_undergraduate "db_undergraduate.bin"
 #define db_postgraduate "db_postgraduate.bin"
 
-// window class name
-const char g_szClassName[] = "studentMarkMgmtClass";
+// window classes
+char g_MainWindowClass[] = "studentMarkMgmt";
+char g_StudentAddClass[] = "studentMarkMgmt_studentAdd";
 
-// window controls
+// main window
+HWND g_hwndMainWindow;
 #define listview_table 101
 HWND g_hwndListView;
 
@@ -28,6 +30,9 @@ HWND g_hwndListView;
 
 #define button_prev 205
 #define button_next 205
+
+// student add window
+HWND g_hwndStudentAdd;
 
 int table_addStudent(node **pCurrentList, node *p, int index, va_list args)
 {
@@ -62,18 +67,35 @@ int table_addStudent(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
+unsigned long long table_getSelectedStudentID()
+{
+    int selectedIndex = ListView_GetNextItem(g_hwndListView, -1, LVNI_SELECTED);
+    if (selectedIndex != -1)
+    {
+        // Get the value of the first column of the selected row
+        char szValue[32];
+        ListView_GetItemText(g_hwndListView, selectedIndex, 0, szValue, sizeof(szValue));
+        unsigned long long id;
+        sscanf(szValue, "%llu", &id);
+        return id;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 void table_reload()
 {
     ListView_DeleteAllItems(g_hwndListView);
     students_forEach(table_addStudent);
 }
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
     case WM_CREATE:
-    {
         // Create the ListView control
         g_hwndListView = CreateWindowEx(
             0,
@@ -193,62 +215,98 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             (HMENU)button_next,
             (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE),
             NULL);
-    }
-    break;
+        break;
+
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
         case button_add:
-            MessageBox(hwnd, "Button clicked!", "Information", MB_OK | MB_ICONINFORMATION);
+            g_hwndStudentAdd = CreateWindowEx(
+                0,
+                g_StudentAddClass,
+                "Add Student",
+                WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
+                CW_USEDEFAULT, CW_USEDEFAULT, 250, 300,
+                hwnd, NULL, NULL, NULL);
             break;
+
+        case button_edit:
+            g_hwndStudentAdd = CreateWindowEx(
+                0,
+                g_StudentAddClass,
+                "Edit Student",
+                WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
+                CW_USEDEFAULT, CW_USEDEFAULT, 250, 300,
+                hwnd, NULL, NULL, NULL);
+            break;
+
         case button_delete:
-            // Get the selected item index
-            int selectedIndex = ListView_GetNextItem(g_hwndListView, -1, LVNI_SELECTED);
-            if (selectedIndex != -1)
-            {
-                // Get the value of the first column of the selected row
-                char szValue[32];
-                ListView_GetItemText(g_hwndListView, selectedIndex, 0, szValue, sizeof(szValue));
-                unsigned long long idToDelete;
-                sscanf(szValue, "%llu", &idToDelete);
-                students_forEach(student_delete, idToDelete);
-                table_reload();
-            }
-            else
-            {
-                MessageBox(hwnd, "No item selected.", "Information", MB_OK | MB_ICONINFORMATION);
-            }
-            //students_forEach(student_delete_confirm, ListView_GetItem);
+            students_forEach(student_delete, table_getSelectedStudentID());
+            table_reload();
             break;
+
         case button_loadDB:
             loadNodes(db_undergraduate, &stu_undergraduate);
             loadNodes(db_postgraduate, &stu_postgraduate);
             table_reload();
             break;
+
+        default:
+            break;
         }
         break;
+
     case WM_CLOSE:
         DestroyWindow(hwnd);
         break;
+
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
+
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
     return 0;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+    case WM_CREATE:
+
+        break;
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        default:
+            break;
+        }
+        break;
+
+    case WM_CLOSE:
+        ShowWindow(hwnd, SW_HIDE);
+        break;
+
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+
+    default:
+        return DefWindowProc(hwnd, msg, wParam, lParam);
+    }
+    return 0;
+}
+
+// register window class
+int registerWindow(HINSTANCE hInstance, LRESULT CALLBACK(callback(HWND, UINT, WPARAM, LPARAM)), char *className)
 {
     WNDCLASSEX wc;
-    HWND hwnd;
-    MSG Msg;
-
-    // Step 1: Registering the Window Class
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = 0;
-    wc.lpfnWndProc = WndProc;
+    wc.lpfnWndProc = callback;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.hInstance = hInstance;
@@ -256,7 +314,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wc.lpszMenuName = NULL;
-    wc.lpszClassName = g_szClassName;
+    wc.lpszClassName = className;
     wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
     if (!RegisterClassEx(&wc))
@@ -264,26 +322,35 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         MessageBox(NULL, "Window Registration Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
         return 0;
     }
+    return 1;
+}
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+    // register window classes
+    registerWindow(hInstance, MainWndProc, g_MainWindowClass);
+    registerWindow(hInstance, StudentAddWndProc, g_StudentAddClass);
 
     // Step 2: Creating the Window
-    hwnd = CreateWindowEx(
+    g_hwndMainWindow = CreateWindowEx(
         WS_EX_CLIENTEDGE,
-        g_szClassName,
+        g_MainWindowClass,
         "Student marks management system",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, 640, 480,
         NULL, NULL, hInstance, NULL);
 
-    if (hwnd == NULL)
+    if (g_hwndMainWindow == NULL)
     {
         MessageBox(NULL, "Window Creation Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
-        return 0;
+        return -1;
     }
 
-    ShowWindow(hwnd, nCmdShow);
-    UpdateWindow(hwnd);
+    ShowWindow(g_hwndMainWindow, nCmdShow);
+    UpdateWindow(g_hwndMainWindow);
 
     // Step 3: The Message Loop
+    MSG Msg;
     while (GetMessage(&Msg, NULL, 0, 0) > 0)
     {
         TranslateMessage(&Msg);
