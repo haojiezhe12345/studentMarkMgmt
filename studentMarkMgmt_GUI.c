@@ -66,6 +66,7 @@ HWND g_hwndStudentAdd_Direction;
 HWND g_hwndStudentAdd_Tutor_Label;
 HWND g_hwndStudentAdd_Tutor;
 
+// display student table, use with student_forEach()
 int table_addStudent(node **pCurrentList, node *p, int index, va_list args)
 {
     // Add some items to the ListView
@@ -458,6 +459,7 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
+        // radio button student type toggle
         case radio_stuAdd_undergraduate:
         case radio_stuAdd_postgraduate:
             if (IsDlgButtonChecked(hwnd, radio_stuAdd_postgraduate))
@@ -627,6 +629,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     MSG Msg;
     while (GetMessage(&Msg, NULL, 0, 0) > 0)
     {
+        // use IsDialogMessage to enable keyboard tabstop
         if (!IsDialogMessage(g_hwndMainWindow, &Msg) && !IsDialogMessage(g_hwndStudentAdd, &Msg))
         {
             TranslateMessage(&Msg);
