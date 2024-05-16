@@ -13,7 +13,7 @@
 int main()
 {
     printf("\n=======================================");
-    printf("\n Student marks management system - CLI ");
+    printf("\n Student Marks Management System - CLI ");
     printf("\n=======================================\n");
 
     // load database from file

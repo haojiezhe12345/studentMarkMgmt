@@ -611,7 +611,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     g_hwndMainWindow = CreateWindowEx(
         WS_EX_CLIENTEDGE,
         g_MainWindowClass,
-        "Student marks management system (GUI)",
+        "Student Marks Management System (GUI)",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT, 640, 480,
         NULL, NULL, hInstance, NULL);
