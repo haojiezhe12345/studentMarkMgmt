@@ -439,20 +439,20 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         CreateWindowEx(
             0,
             "BUTTON",
-            "Cancel",
+            "OK",
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             120, 238, 64, 24,
             hwnd,
-            (HMENU)IDCANCEL, NULL, NULL);
+            (HMENU)IDOK, NULL, NULL);
 
         CreateWindowEx(
             0,
             "BUTTON",
-            "OK",
+            "Cancel",
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
             192, 238, 64, 24,
             hwnd,
-            (HMENU)IDOK, NULL, NULL);
+            (HMENU)IDCANCEL, NULL, NULL);
 
         break;
 
