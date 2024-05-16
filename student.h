@@ -181,11 +181,13 @@ int student_listMajorIds(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
-// list students in a class, output list to `node **dest`
-// args: `int classid`, `node **dest`
-int student_listByClass(node **pCurrentList, node *p, int index, va_list args)
+// list all students in the class that a student belongs to, identified by student id 111111111100
+// output list to `node **dest`
+// args: `unsigned long long studentId`, `node **dest`
+int student_listClassStudentsByStudentId(node **pCurrentList, node *p, int index, va_list args)
 {
-    if (p->value.classid == va_arg(args, int))
+    // match student id: 111111111100
+    if (p->value.id / 100 == va_arg(args, unsigned long long) / 100)
     {
         node **pList = va_arg(args, node **);
         // get list length
@@ -202,6 +204,7 @@ int student_listByClass(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
+// get major id from database, returns max + 1 if not in database
 int getMajorId(const char *major)
 {
     int idList[1000] = {0};
@@ -228,10 +231,11 @@ int getMajorId(const char *major)
     return max + 1;
 }
 
-int getClassStudentCount(int classid)
+// get number of students in the class that a student belongs to, identified by student id 111111111100
+int getClassStudentCountByStudentId(unsigned long long id)
 {
     node *studentList[100] = {NULL};
-    students_forEach(student_listByClass, classid, studentList);
+    students_forEach(student_listClassStudentsByStudentId, id, studentList);
     // get list length
     int i;
     for (i = 0; studentList[i] != NULL && i < 100; i++)
@@ -247,9 +251,10 @@ unsigned long long generateStudentID(int type, char *major, int classid)
     time_t now = time(NULL);
     struct tm *time = localtime(&now);
 
-    // 111123334400
+    // generate 111123334400
     unsigned long long id = 100000000ULL * (time->tm_year + 1900) + 10000000ULL * type + 10000 * getMajorId(major) + classid * 100;
-    return id + getClassStudentCount(classid) + 1;
+    // generate 000000000011
+    return id + getClassStudentCountByStudentId(id) + 1;
 }
 
 #endif
