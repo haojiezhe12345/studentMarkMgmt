@@ -295,6 +295,24 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         }
         break;
 
+    case WM_NOTIFY:
+        NMHDR *nmhdr = (NMHDR *)lParam;
+        if (nmhdr->idFrom == listview_table && nmhdr->code == NM_DBLCLK)
+        {
+            unsigned long long id = table_getSelectedStudentID();
+            if (id)
+            {
+                g_hwndStudentAdd = CreateWindowEx(
+                    0,
+                    g_StudentAddClass,
+                    "Edit Student",
+                    WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
+                    CW_USEDEFAULT, CW_USEDEFAULT, 270, 300,
+                    hwnd, NULL, NULL, (LPVOID)&id);
+            }
+        }
+        break;
+
     case WM_CLOSE:
         DestroyWindow(hwnd);
         break;
