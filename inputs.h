@@ -53,16 +53,16 @@ unsigned long long inputNum(const char *msg, unsigned long long min, unsigned lo
     return num;
 }
 
-void reInputNum(unsigned long long *target, const char *msg, unsigned long long min, unsigned long long max)
+void reInputInt(int *target, const char *msg, unsigned long long min, unsigned long long max)
 {
-    unsigned long long num;
+    int num;
     while (1)
     {
         printf(msg, *target);
         char *str = inputStr("", 32);
         if (*str != '\0')
         {
-            sscanf(str, "%llu", &num);
+            sscanf(str, "%d", &num);
             if ((min <= num && num <= max))
             {
                 *target = num;

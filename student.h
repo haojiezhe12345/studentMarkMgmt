@@ -102,7 +102,7 @@ int student_modify(node **pCurrentList, node *p, int index, va_list args)
         reInputStr(p->value.name, "Name (leave blank for %s): ", 32);
         reInputSelect(&p->value.gender, "Gender (1=Male, 2=Female, leave blank for %d): ", 2);
         reInputStr(p->value.major, "Major (leave blank for %s): ", 64);
-        reInputNum((unsigned long long *)&p->value.classid, "Class (leave blank for %d): ", 1, 99);
+        reInputInt(&p->value.classid, "Class (leave blank for %d): ", 1, 99);
 
         if (*pCurrentList == stu_postgraduate)
         {
@@ -141,14 +141,14 @@ int student_marks_update(node **pCurrentList, node *p, int index, va_list args)
     {
         if (*pCurrentList == stu_undergraduate)
         {
-            reInputNum((unsigned long long *)&p->value.mark_math, "Math (leave blank for %d): ", 0, 100);
-            reInputNum((unsigned long long *)&p->value.mark_eng, "English (leave blank for %d): ", 0, 100);
-            reInputNum((unsigned long long *)&p->value.mark_c, "C Programming (leave blank for %d): ", 0, 100);
+            reInputInt(&p->value.mark_math, "Math (leave blank for %d): ", 0, 100);
+            reInputInt(&p->value.mark_eng, "English (leave blank for %d): ", 0, 100);
+            reInputInt(&p->value.mark_c, "C Programming (leave blank for %d): ", 0, 100);
         }
         else if (*pCurrentList == stu_postgraduate)
         {
-            reInputNum((unsigned long long *)&p->value.mark_overall, "Overall (leave blank for %d): ", 0, 100);
-            reInputNum((unsigned long long *)&p->value.mark_paper, "Paper (leave blank for %d): ", 0, 100);
+            reInputInt(&p->value.mark_overall, "Overall (leave blank for %d): ", 0, 100);
+            reInputInt(&p->value.mark_paper, "Paper (leave blank for %d): ", 0, 100);
         }
         return 1;
     }
