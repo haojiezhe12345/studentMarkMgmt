@@ -142,12 +142,39 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     switch (msg)
     {
     case WM_CREATE:
+        CreateWindowEx(
+            0,
+            "BUTTON",
+            "Add",
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            16, 16, 96, 24,
+            hwnd,
+            (HMENU)button_add, NULL, NULL);
+
+        CreateWindowEx(
+            0,
+            "BUTTON",
+            "Edit",
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            128, 16, 96, 24,
+            hwnd,
+            (HMENU)button_edit, NULL, NULL);
+
+        CreateWindowEx(
+            0,
+            "BUTTON",
+            "Delete",
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
+            240, 16, 96, 24,
+            hwnd,
+            (HMENU)button_delete, NULL, NULL);
+
         // Create the ListView control
         g_hwndListView = CreateWindowEx(
             0,
             WC_LISTVIEW,
             "",
-            WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_EDITLABELS,
+            WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_EDITLABELS | WS_TABSTOP,
             16, 54, 588, 320,
             hwnd,
             (HMENU)listview_table, NULL, NULL);
@@ -182,33 +209,6 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         lvc.pszText = "Class";
         lvc.iSubItem = 4;
         ListView_InsertColumn(g_hwndListView, 4, &lvc);
-
-        CreateWindowEx(
-            0,
-            "BUTTON",
-            "Add",
-            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            16, 16, 96, 24,
-            hwnd,
-            (HMENU)button_add, NULL, NULL);
-
-        CreateWindowEx(
-            0,
-            "BUTTON",
-            "Edit",
-            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            128, 16, 96, 24,
-            hwnd,
-            (HMENU)button_edit, NULL, NULL);
-
-        CreateWindowEx(
-            0,
-            "BUTTON",
-            "Delete",
-            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,
-            240, 16, 96, 24,
-            hwnd,
-            (HMENU)button_delete, NULL, NULL);
 
         CreateWindowEx(
             0,
@@ -273,7 +273,7 @@ LRESULT CALLBACK MainWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
                     "Edit Student",
                     WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_VISIBLE,
                     CW_USEDEFAULT, CW_USEDEFAULT, 270, 300,
-                    hwnd, NULL, NULL, &id);
+                    hwnd, NULL, NULL, (LPVOID)&id);
             }
             break;
 
@@ -454,6 +454,69 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             hwnd,
             (HMENU)IDCANCEL, NULL, NULL);
 
+        // Retrieve the lpParam (student id to edit) passed during window creation
+        CREATESTRUCT *pCreateStruct = (CREATESTRUCT *)lParam;
+        unsigned long long *pEditId = (unsigned long long *)pCreateStruct->lpCreateParams;
+
+        // if id is specified, try to fill data
+        if (pEditId)
+        {
+            // get student node
+            node *p;
+            students_forEach(student_getNodeById, *pEditId, &p);
+
+            // change window title
+            char title[64];
+            sprintf(title, "Edit %llu", p->value.id);
+            SetWindowText(hwnd, title);
+
+            // check student type radio button
+            // extract student type from id (000010000000)
+            if (p->value.id / 10000000 % 10 == 1)
+            {
+                CheckDlgButton(hwnd, radio_stuAdd_undergraduate, BST_CHECKED);
+                CheckDlgButton(hwnd, radio_stuAdd_postgraduate, BST_UNCHECKED);
+            }
+            else
+            {
+                CheckDlgButton(hwnd, radio_stuAdd_undergraduate, BST_UNCHECKED);
+                CheckDlgButton(hwnd, radio_stuAdd_postgraduate, BST_CHECKED);
+                // show postgraduate extra info
+                ShowWindow(g_hwndStudentAdd_Direction_Label, SW_SHOW);
+                ShowWindow(g_hwndStudentAdd_Direction, SW_SHOW);
+                ShowWindow(g_hwndStudentAdd_Tutor_Label, SW_SHOW);
+                ShowWindow(g_hwndStudentAdd_Tutor, SW_SHOW);
+                // direction
+                SetWindowText(g_hwndStudentAdd_Direction, p->value.direction);
+                // tutor
+                SetWindowText(g_hwndStudentAdd_Tutor, p->value.tutor);
+            }
+            // disable student type buttons
+            EnableWindow(g_hwndStudentAdd_Undergraduate, FALSE);
+            EnableWindow(g_hwndStudentAdd_Postgraduate, FALSE);
+
+            // name
+            SetWindowText(g_hwndStudentAdd_Name, p->value.name);
+
+            // gender
+            if (p->value.gender == 1)
+            {
+                CheckDlgButton(hwnd, radio_stuAdd_gender_male, BST_CHECKED);
+            }
+            else
+            {
+                CheckDlgButton(hwnd, radio_stuAdd_gender_female, BST_CHECKED);
+            }
+
+            // major
+            SetWindowText(g_hwndStudentAdd_Major, p->value.major);
+
+            // class
+            char classStr[16];
+            sprintf(classStr, "%d", p->value.classid);
+            SetWindowText(g_hwndStudentAdd_Class, classStr);
+        }
+
         break;
 
     case WM_COMMAND:
@@ -513,8 +576,8 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             GetWindowText(g_hwndStudentAdd_Major, stu.major, 64);
 
             // classid
-            char classStr[32];
-            GetWindowText(g_hwndStudentAdd_Class, classStr, 64);
+            char classStr[16];
+            GetWindowText(g_hwndStudentAdd_Class, classStr, 16);
             sscanf(classStr, "%d", &stu.classid);
             if (stu.classid < 1 || stu.classid > 99)
             {
@@ -527,9 +590,6 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             // tutor
             GetWindowText(g_hwndStudentAdd_Tutor, stu.tutor, 32);
 
-            // generate id
-            stu.id = generateStudentID(stuType, stu.major, stu.classid);
-
             // init marks
             stu.mark_math = -1;
             stu.mark_eng = -1;
@@ -537,15 +597,41 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             stu.mark_overall = -1;
             stu.mark_paper = -1;
 
-            if (stuType == 1)
+            // get window title
+            char title[64];
+            GetWindowText(hwnd, title, 64);
+            // try to recognize `Edit XXXXXXXXXXXX`
+            unsigned long long editId = 0;
+            sscanf(title, "Edit %llu", &editId);
+
+            // if editId successfully parsed, then edit student
+            if (editId)
             {
-                appendNode(&stu_undergraduate, stu);
-                saveNodes(db_undergraduate, stu_undergraduate);
+                // get student node
+                node *p;
+                students_forEach(student_getNodeById, editId, &p);
+                // inherit old student id
+                stu.id = p->value.id;
+                // copy memory to node
+                memcpy(&p->value, &stu, sizeof(nodeValue));
+                saveDB();
             }
+            // otherwise add student
             else
             {
-                appendNode(&stu_postgraduate, stu);
-                saveNodes(db_postgraduate, stu_postgraduate);
+                // generate id
+                stu.id = generateStudentID(stuType, stu.major, stu.classid);
+
+                if (stuType == 1)
+                {
+                    appendNode(&stu_undergraduate, stu);
+                    saveNodes(db_undergraduate, stu_undergraduate);
+                }
+                else
+                {
+                    appendNode(&stu_postgraduate, stu);
+                    saveNodes(db_postgraduate, stu_postgraduate);
+                }
             }
 
             table_reload();

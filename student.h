@@ -155,7 +155,22 @@ int student_marks_update(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
+// find student node by student id, output to `node *dest`
+// args: `unsigned long long id`, `node **dest`
+int student_getNodeById(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.id == va_arg(args, unsigned long long))
+    {
+        node **dest = va_arg(args, node **);
+        *dest = p;
+        return 1;
+    }
+    return 0;
+}
+
 // generate id-value pairs of majors from database, output 2 lists to `int *dest` and `char **dest`
+// major id is extracted from student id (000001110000) at first occurrence of its major
+// for example: `202412330101 "major1"` -> major1 = 233
 // args: `int *dest`, `char **dest`
 int student_listMajorIds(node **pCurrentList, node *p, int index, va_list args)
 {
@@ -165,7 +180,7 @@ int student_listMajorIds(node **pCurrentList, node *p, int index, va_list args)
     int i;
     for (i = 0; pListMajor[i] != NULL && i < 1000; i++)
     {
-        // major in list, skip appending
+        // major already in list, skip appending
         if (strcmp(pListMajor[i], p->value.major) == 0)
         {
             return 0;
@@ -204,7 +219,7 @@ int student_listClassStudentsByStudentId(node **pCurrentList, node *p, int index
     return 0;
 }
 
-// get major id from database, returns max + 1 if not in database
+// calculate major id from database rows, returns max + 1 if not in database
 int getMajorId(const char *major)
 {
     int idList[1000] = {0};
@@ -231,7 +246,7 @@ int getMajorId(const char *major)
     return max + 1;
 }
 
-// get number of students in the class that a student belongs to, identified by student id 111111111100
+// get number of students in the class that the student belongs to, identified by student id 111111111100
 int getClassStudentCountByStudentId(unsigned long long id)
 {
     node *studentList[100] = {NULL};
