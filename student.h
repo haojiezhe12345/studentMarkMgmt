@@ -60,7 +60,7 @@ int students_forEach(int (*callback)(node **, node *, int, va_list), ...)
 
 int student_print(node **pCurrentList, node *p, int index, va_list args)
 {
-    printf("%llu\t%s\t%s\t%s\t%d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
+    printf("%llu\t%s\t%s\t%s\tClass %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
     return 0;
 }
 
@@ -155,6 +155,91 @@ int student_marks_update(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
+// generate id-value pairs of majors from database, output 2 lists to `int *dest` and `char **dest`
+// args: `int *dest`, `char **dest`
+int student_listMajorIds(node **pCurrentList, node *p, int index, va_list args)
+{
+    int *pListId = va_arg(args, int *);
+    char **pListMajor = va_arg(args, char **);
+    // match if major already in list
+    int i;
+    for (i = 0; pListMajor[i] != NULL && i < 1000; i++)
+    {
+        // major in list, skip appending
+        if (strcmp(pListMajor[i], p->value.major) == 0)
+        {
+            return 0;
+        }
+    }
+    // major not in list, append to the end
+    if (i < 1000)
+    {
+        pListMajor[i] = p->value.major;
+        // extract major id from student id (000001110000)
+        pListId[i] = p->value.id / 10000 % 1000;
+    }
+    return 0;
+}
+
+// list students in a class, output list to `node **dest`
+// args: `int classid`, `node **dest`
+int student_listByClass(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.classid == va_arg(args, int))
+    {
+        node **pList = va_arg(args, node **);
+        // get list length
+        int i;
+        for (i = 0; pList[i] != NULL && i < 100; i++)
+        {
+        }
+        // append to the end
+        if (i < 100)
+        {
+            pList[i] = p;
+        }
+    }
+    return 0;
+}
+
+int getMajorId(const char *major)
+{
+    int idList[1000] = {0};
+    char *majorList[1000] = {NULL};
+    students_forEach(student_listMajorIds, idList, majorList);
+    // match if major already in database
+    int i;
+    for (i = 0; majorList[i] != NULL && i < 1000; i++)
+    {
+        if (strcmp(majorList[i], major) == 0)
+        {
+            return idList[i];
+        }
+    }
+    // if no match, find the max major id then +1
+    int max = 0;
+    for (int i = 0; i < 1000; i++)
+    {
+        if (idList[i] > max)
+        {
+            max = idList[i];
+        }
+    }
+    return max + 1;
+}
+
+int getClassStudentCount(int classid)
+{
+    node *studentList[100] = {NULL};
+    students_forEach(student_listByClass, classid, studentList);
+    // get list length
+    int i;
+    for (i = 0; studentList[i] != NULL && i < 100; i++)
+    {
+    }
+    return i;
+}
+
 // generate student id, format: year[4] + type[1] + major[3] + class[2] + order[2]
 unsigned long long generateStudentID(int type, char *major, int classid)
 {
@@ -162,7 +247,9 @@ unsigned long long generateStudentID(int type, char *major, int classid)
     time_t now = time(NULL);
     struct tm *time = localtime(&now);
 
-    return (time->tm_year + 1900) * 100000000ULL + type * 10000000ULL + 0 * 10000 + classid * 100 + 1;
+    // 111123334400
+    unsigned long long id = 100000000ULL * (time->tm_year + 1900) + 10000000ULL * type + 10000 * getMajorId(major) + classid * 100;
+    return id + getClassStudentCount(classid) + 1;
 }
 
 #endif
