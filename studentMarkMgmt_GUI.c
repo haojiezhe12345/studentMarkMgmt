@@ -653,12 +653,12 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             }
 
             table_reload();
-            ShowWindow(hwnd, SW_HIDE);
+            DestroyWindow(hwnd);
 
             break;
 
         case IDCANCEL:
-            ShowWindow(hwnd, SW_HIDE);
+            DestroyWindow(hwnd);
             break;
 
         default:
@@ -667,11 +667,7 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         break;
 
     case WM_CLOSE:
-        ShowWindow(hwnd, SW_HIDE);
-        break;
-
-    case WM_DESTROY:
-        PostQuitMessage(0);
+        DestroyWindow(hwnd);
         break;
 
     default:
