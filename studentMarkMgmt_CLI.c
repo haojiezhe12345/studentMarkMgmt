@@ -7,8 +7,60 @@
 #include "inputs.h"
 #include "student.h"
 
+// db location
 #define db_undergraduate "db_undergraduate.bin"
 #define db_postgraduate "db_postgraduate.bin"
+
+char cmdList[][16] = {
+    "help",
+    "ls",
+    "list",
+    "add",
+    "modify",
+    "delete",
+    "marks",
+    "save",
+    "load",
+    "exit",
+    "quit",
+};
+
+// match and complete a command
+// returns the completed command if there's only one match
+// for example: h->help, a->add
+char *matchCmd(char *cmd)
+{
+    int matchedCmds = 0;
+    int index;
+    // loop over commands and find how many commands are matched
+    for (int i = 0; i < sizeof(cmdList); i++)
+    {
+        // compare each char
+        for (int j = 0; j < strlen(cmd) && j < strlen(cmdList[i]); j++)
+        {
+            // break on char not match
+            if (cmd[j] != cmdList[i][j])
+            {
+                break;
+            }
+            // if successfully looped to the last char, then it's fully matched
+            if (j == strlen(cmd) - 1)
+            {
+                matchedCmds++;
+                index = i;
+            }
+        }
+    }
+
+    if (matchedCmds == 1)
+    {
+        return cmdList[index];
+    }
+    else
+    {
+        return cmd;
+    }
+}
 
 int main()
 {
@@ -35,8 +87,10 @@ int main()
 
         char cmd[64];
         sscanf(cmds, "%s", cmd);
+        // complete the command
+        strcpy(cmd, matchCmd(cmd));
 
-        if (strcmp(cmd, "h") == 0 || strcmp(cmd, "help") == 0)
+        if (strcmp(cmd, "help") == 0)
         {
             printf("h, help           Show help\n");
             printf("ls, list          List students\n");
@@ -104,7 +158,7 @@ int main()
         }
 
         // student modify
-        else if (strcmp(cmd, "mod") == 0 || strcmp(cmd, "modify") == 0)
+        else if (strcmp(cmd, "modify") == 0)
         {
             unsigned long long id;
             if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
@@ -121,7 +175,7 @@ int main()
         }
 
         // student delete
-        else if (strcmp(cmd, "del") == 0 || strcmp(cmd, "delete") == 0)
+        else if (strcmp(cmd, "delete") == 0)
         {
             unsigned long long id;
             if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
@@ -138,7 +192,7 @@ int main()
         }
 
         // marks management
-        else if (strcmp(cmd, "mark") == 0 || strcmp(cmd, "marks") == 0)
+        else if (strcmp(cmd, "marks") == 0)
         {
             char subcmd[64];
             unsigned long long id;
@@ -195,7 +249,7 @@ int main()
             printf("\n");
         }
 
-        else if (strcmp(cmd, "q") == 0 || strcmp(cmd, "quit") == 0 || strcmp(cmd, "exit") == 0)
+        else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "exit") == 0)
         {
             break;
         }
