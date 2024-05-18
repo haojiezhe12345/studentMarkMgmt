@@ -95,7 +95,7 @@ int student_delete_confirm(node **pCurrentList, node *p, int index, va_list args
     return 0;
 }
 
-int student_modify(node **pCurrentList, node *p, int index, va_list args)
+int student_edit(node **pCurrentList, node *p, int index, va_list args)
 {
     if (p->value.id == va_arg(args, unsigned long long))
     {

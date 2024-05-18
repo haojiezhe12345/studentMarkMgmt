@@ -16,7 +16,7 @@ char cmdList[][16] = {
     "ls",
     "list",
     "add",
-    "modify",
+    "edit",
     "delete",
     "marks",
     "save",
@@ -95,9 +95,9 @@ int main()
             printf("h, help           Show help\n");
             printf("ls, list          List students\n");
             printf("add               Add student\n");
-            printf("mod, modify       Modify student\n");
+            printf("edit              Edit student info\n");
             printf("del, delete       Delete student\n");
-            printf("mark, marks       Marks management\n");
+            printf("marks             Marks management\n");
             printf("save              Save databases to file\n");
             printf("load              Load databases from file\n");
             printf("q, quit, exit     Exit program\n");
@@ -157,20 +157,20 @@ int main()
             printf("Student added successfully!\n");
         }
 
-        // student modify
-        else if (strcmp(cmd, "modify") == 0)
+        // student edit
+        else if (strcmp(cmd, "edit") == 0)
         {
             unsigned long long id;
             if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
             {
-                if (students_forEach(student_modify, id))
+                if (students_forEach(student_edit, id))
                 {
                     printf("Student not found\n");
                 }
             }
             else
             {
-                printf("Usage: modify <Student ID>\n");
+                printf("Usage: edit <Student ID>\n");
             }
         }
 
