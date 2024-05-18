@@ -11,7 +11,7 @@
 #define db_undergraduate "db_undergraduate.bin"
 #define db_postgraduate "db_postgraduate.bin"
 
-char cmdList[][16] = {
+char allcmds[][16] = {
     "help",
     "ls",
     "list",
@@ -28,12 +28,12 @@ char cmdList[][16] = {
 // match and complete a command
 // returns the completed command if there's only one match
 // for example: h->help, a->add
-char *matchCmd(char *cmd)
+char *matchCmd(char cmdList[][16], int listSize, char *cmd)
 {
     int matchedCmds = 0;
     int index;
     // loop over commands and find how many commands are matched
-    for (int i = 0; i < sizeof(cmdList); i++)
+    for (int i = 0; i < listSize; i++)
     {
         // compare each char
         for (int j = 0; j < strlen(cmd) && j < strlen(cmdList[i]); j++)
@@ -88,19 +88,20 @@ int main()
         char cmd[64];
         sscanf(cmds, "%s", cmd);
         // complete the command
-        strcpy(cmd, matchCmd(cmd));
+        strcpy(cmd, matchCmd(allcmds, sizeof(allcmds) / sizeof(allcmds[0]), cmd));
 
         if (strcmp(cmd, "help") == 0)
         {
-            printf("h, help           Show help\n");
-            printf("ls, list          List students\n");
-            printf("add               Add student\n");
-            printf("edit              Edit student info\n");
-            printf("del, delete       Delete student\n");
-            printf("marks             Marks management\n");
-            printf("save              Save databases to file\n");
-            printf("load              Load databases from file\n");
-            printf("q, quit, exit     Exit program\n");
+            printf("help          Show help\n");
+            printf("ls, list      List students\n");
+            printf("add           Add student\n");
+            printf("edit          Edit student info\n");
+            printf("delete        Delete student\n");
+            printf("marks         Marks management\n");
+            printf("save          Save databases to file\n");
+            printf("load          Load databases from file\n");
+            printf("quit, exit    Exit program\n");
+            printf("\nNote: Short-handed commands are accepted\nFor example, \"a\" -> \"add\", \"d\" or \"del\" -> \"delete\"\n");
         }
 
         // student list
@@ -196,15 +197,23 @@ int main()
         {
             char subcmd[64];
             unsigned long long id;
-            int params = sscanf(cmds, "%s %s %llu", cmd, subcmd, &id);
-            if (params == 3 && strcmp(subcmd, "show") == 0)
+            // parse params
+            int paramsCount = sscanf(cmds, "%*s %s %llu", subcmd, &id);
+            // complete sub command
+            char subcmds[][16] = {
+                "show",
+                "update",
+            };
+            strcpy(subcmd, matchCmd(subcmds, sizeof(subcmds) / sizeof(subcmds[0]), subcmd));
+
+            if (paramsCount == 2 && strcmp(subcmd, "show") == 0)
             {
                 if (students_forEach(student_marks_show, id))
                 {
                     printf("Student not found\n");
                 }
             }
-            else if (params == 3 && strcmp(subcmd, "update") == 0)
+            else if (paramsCount == 2 && strcmp(subcmd, "update") == 0)
             {
                 if (students_forEach(student_marks_update, id))
                 {
