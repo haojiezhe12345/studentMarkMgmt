@@ -22,6 +22,10 @@ typedef struct nodeValue
     // postgraduate marks
     int mark_overall;
     int mark_paper;
+    // ranks
+    int totalmarks;
+    int rank_school;
+    int rank_class;
 } nodeValue;
 
 typedef struct node

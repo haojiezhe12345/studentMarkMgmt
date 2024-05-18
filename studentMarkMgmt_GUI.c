@@ -560,60 +560,10 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             break;
 
         case IDOK:
-            int stuType;
-            if (IsDlgButtonChecked(hwnd, radio_stuAdd_postgraduate))
-            {
-                stuType = 2;
-            }
-            else
-            {
-                stuType = 1;
-            }
+            int stuType = IsDlgButtonChecked(hwnd, radio_stuAdd_postgraduate) ? 2 : 1;
 
-            nodeValue stu;
-
-            // name
-            GetWindowText(g_hwndStudentAdd_Name, stu.name, 32);
-
-            // gender
-            if (IsDlgButtonChecked(hwnd, radio_stuAdd_gender_male))
-            {
-                stu.gender = 1;
-            }
-            else if (IsDlgButtonChecked(hwnd, radio_stuAdd_gender_female))
-            {
-                stu.gender = 2;
-            }
-            else
-            {
-                MessageBox(hwnd, "Please select gender!", "", MB_ICONWARNING);
-                break;
-            }
-
-            // major
-            GetWindowText(g_hwndStudentAdd_Major, stu.major, 64);
-
-            // classid
-            char classStr[16];
-            GetWindowText(g_hwndStudentAdd_Class, classStr, 16);
-            sscanf(classStr, "%d", &stu.classid);
-            if (stu.classid < 1 || stu.classid > 99)
-            {
-                MessageBox(hwnd, "Class should be between 1 and 99!", "", MB_ICONWARNING);
-                break;
-            }
-
-            // direction
-            GetWindowText(g_hwndStudentAdd_Direction, stu.direction, 64);
-            // tutor
-            GetWindowText(g_hwndStudentAdd_Tutor, stu.tutor, 32);
-
-            // init marks
-            stu.mark_math = -1;
-            stu.mark_eng = -1;
-            stu.mark_c = -1;
-            stu.mark_overall = -1;
-            stu.mark_paper = -1;
+            node stu;
+            node *p;
 
             // get window title
             char title[64];
@@ -626,28 +576,78 @@ LRESULT CALLBACK StudentAddWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             if (editId)
             {
                 // get student node
-                node *p;
                 students_forEach(student_getNodeById, editId, &p);
-                // inherit old student id
-                stu.id = p->value.id;
-                // copy memory to node
-                memcpy(&p->value, &stu, sizeof(nodeValue));
+            }
+            else
+            {
+                p = &stu;
+            }
+
+            // name
+            GetWindowText(g_hwndStudentAdd_Name, p->value.name, 32);
+
+            // gender
+            if (IsDlgButtonChecked(hwnd, radio_stuAdd_gender_male))
+            {
+                p->value.gender = 1;
+            }
+            else if (IsDlgButtonChecked(hwnd, radio_stuAdd_gender_female))
+            {
+                p->value.gender = 2;
+            }
+            else
+            {
+                MessageBox(hwnd, "Please select gender!", "", MB_ICONWARNING);
+                break;
+            }
+
+            // major
+            GetWindowText(g_hwndStudentAdd_Major, p->value.major, 64);
+
+            // classid
+            char classStr[16];
+            GetWindowText(g_hwndStudentAdd_Class, classStr, 16);
+            sscanf(classStr, "%d", &p->value.classid);
+            if (p->value.classid < 1 || p->value.classid > 99)
+            {
+                MessageBox(hwnd, "Class should be between 1 and 99!", "", MB_ICONWARNING);
+                break;
+            }
+
+            // direction
+            GetWindowText(g_hwndStudentAdd_Direction, p->value.direction, 64);
+            // tutor
+            GetWindowText(g_hwndStudentAdd_Tutor, p->value.tutor, 32);
+
+            // edit complete, save database
+            if (editId)
+            {
                 saveDB();
             }
             // otherwise add student
             else
             {
                 // generate id
-                stu.id = generateStudentID(stuType, stu.major, stu.classid);
+                p->value.id = generateStudentID(stuType, p->value.major, p->value.classid);
+
+                // init marks
+                p->value.mark_math = -1;
+                p->value.mark_eng = -1;
+                p->value.mark_c = -1;
+                p->value.mark_overall = -1;
+                p->value.mark_paper = -1;
+                p->value.totalmarks = -1;
+                p->value.rank_school = -1;
+                p->value.rank_class = -1;
 
                 if (stuType == 1)
                 {
-                    appendNode(&stu_undergraduate, stu);
+                    appendNode(&stu_undergraduate, p->value);
                     saveNodes(db_undergraduate, stu_undergraduate);
                 }
                 else
                 {
-                    appendNode(&stu_postgraduate, stu);
+                    appendNode(&stu_postgraduate, p->value);
                     saveNodes(db_postgraduate, stu_postgraduate);
                 }
             }

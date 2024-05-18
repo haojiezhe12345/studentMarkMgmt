@@ -144,6 +144,9 @@ int main()
             stu.mark_c = -1;
             stu.mark_overall = -1;
             stu.mark_paper = -1;
+            stu.totalmarks = -1;
+            stu.rank_school = -1;
+            stu.rank_class = -1;
 
             if (stuType == 1)
             {
@@ -222,7 +225,7 @@ int main()
             }
             else
             {
-                printf("marks show <Student ID>      Show student's marks\n");
+                printf("marks show <Student ID>      Show student's marks and ranks\n");
                 printf("marks update <Student ID>    Update student's marks\n");
             }
         }
