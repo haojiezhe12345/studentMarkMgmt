@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <conio.h>
 
 #include "linkedList.h"
 #include "inputs.h"
@@ -107,7 +108,95 @@ int main()
         // student list
         else if (strcmp(cmd, "ls") == 0 || strcmp(cmd, "list") == 0)
         {
-            students_forEach(student_print);
+            char subcmd[64];
+            // parse params
+            int paramsCount = sscanf(cmds, "%*s %s", subcmd);
+            // complete sub command
+            char subcmds[][16] = {
+                "undergraduate",
+                "postgraduate",
+            };
+            strcpy(subcmd, matchCmd(subcmds, sizeof(subcmds) / sizeof(subcmds[0]), subcmd));
+
+            node *head;
+            if (paramsCount == 1 && strcmp(subcmd, "undergraduate") == 0)
+            {
+                head = stu_undergraduate;
+            }
+            else if (paramsCount == 1 && strcmp(subcmd, "postgraduate") == 0)
+            {
+                head = stu_postgraduate;
+            }
+            else
+            {
+                printf("ls undergraduate    List undergraduate students\n");
+                printf("ls postgraduate     List postgraduate students\n");
+                continue;
+            }
+
+            // arrow keys to browse pages
+            node **nodes;
+            int size = 10;
+            int page = 0;
+            while (1)
+            {
+                int total = getNodesCount(head);
+                if (page < 0)
+                {
+                    page = 0;
+                }
+                if (page * size + 1 > total)
+                {
+                    page = (total - 1) / size;
+                }
+                // get nodes by page
+                nodes = getPagedNodes(head, size, page);
+                printf("\nDisplaying %d - %d of %d\n\n", page * size + 1, (page + 1) * size, total);
+                // print nodes
+                for (int i = 0; i < size && nodes[i] != NULL; i++)
+                {
+                    node *p = nodes[i];
+                    printf("%llu\t%s\t%s\t%s\tClass %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
+                }
+                printf("\nArrow keys: Navigate    Home/End: First/Last Page    q: Quit");
+                // detect keyboard press
+                int ch = getch();
+                if (ch == 0 || ch == 224) // prefix for arrow keys
+                {
+                    switch (getch()) // the actual key code
+                    {
+                    case 72: // up
+                        page--;
+                        break;
+                    case 80: // down
+                        page++;
+                        break;
+                    case 75: // left
+                        page--;
+                        break;
+                    case 77: // right
+                        page++;
+                        break;
+                    case 71: // home
+                        page = 0;
+                        break;
+                    case 79: // end
+                        page = (total - 1) / size;
+                        break;
+                    case 73: // page up
+                        page--;
+                        break;
+                    case 81: // page down
+                        page++;
+                        break;
+                    }
+                }
+                else if (ch == 'q')
+                {
+                    break;
+                }
+                printf("\n");
+            }
         }
 
         // student add

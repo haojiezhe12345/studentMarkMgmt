@@ -61,6 +61,34 @@ node *getNodeAtIndex(node *head, int index)
     return NULL;
 }
 
+int getNodesCount(node *head)
+{
+    node *p = head;
+    int i;
+    for (i = 0; p != NULL; i++)
+    {
+        p = p->next;
+    }
+    return i;
+}
+
+node **getPagedNodes(node *head, int size, int page)
+{
+    node *p = head;
+    node **nodelist = (node **)calloc(size, sizeof(node *));
+    int listIndex = 0;
+    for (int i = 0; p != NULL && listIndex < size; i++)
+    {
+        if (i >= page * size)
+        {
+            nodelist[listIndex] = p;
+            listIndex++;
+        }
+        p = p->next;
+    }
+    return nodelist;
+}
+
 void appendNode(node **head, nodeValue value)
 {
     // init node
