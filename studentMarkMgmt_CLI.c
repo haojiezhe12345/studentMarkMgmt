@@ -130,7 +130,7 @@ int main()
             else
             {
                 printf("ls undergraduate    List undergraduate students\n");
-                printf("ls postgraduate     List postgraduate students\n");
+                printf("ls postgraduate     List postgraduate students\n\n");
                 continue;
             }
 
@@ -193,6 +193,7 @@ int main()
                 }
                 else if (ch == 'q')
                 {
+                    printf("\n");
                     break;
                 }
                 printf("\n");

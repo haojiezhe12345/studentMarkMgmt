@@ -114,6 +114,33 @@ int student_edit(node **pCurrentList, node *p, int index, va_list args)
     return 0;
 }
 
+int student_calc_totalmarks(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (*pCurrentList == stu_undergraduate)
+    {
+        if (p->value.mark_math >= 0 && p->value.mark_eng >= 0 && p->value.mark_c >= 0)
+        {
+            p->value.totalmarks = p->value.mark_math + p->value.mark_eng + p->value.mark_c;
+        }
+        else
+        {
+            p->value.totalmarks = -1;
+        }
+    }
+    else if (*pCurrentList == stu_postgraduate)
+    {
+        if (p->value.mark_overall >= 0 && p->value.mark_paper >= 0)
+        {
+            p->value.totalmarks = p->value.mark_overall + p->value.mark_paper;
+        }
+        else
+        {
+            p->value.totalmarks = -1;
+        }
+    }
+    return 0;
+}
+
 // calculate rank, save result to student node
 // args: `node *pRank`
 int student_marks_rank(node **pCurrentList, node *p, int index, va_list args)
@@ -123,68 +150,29 @@ int student_marks_rank(node **pCurrentList, node *p, int index, va_list args)
     // if ranking starts, calculate total marks and set rank to 1
     if (p == stu_undergraduate)
     {
-        // calculate total marks
-        if (pRank->value.id / 10000000 % 10 == 1)
+        students_forEach(student_calc_totalmarks);
+        // abort if marks are not valid
+        if (pRank->value.totalmarks < 0)
         {
-            if (pRank->value.mark_math >= 0 && pRank->value.mark_eng >= 0 && pRank->value.mark_c >= 0)
-            {
-                pRank->value.totalmarks = pRank->value.mark_math + pRank->value.mark_eng + pRank->value.mark_c;
-            }
-            // abort if marks are not valid
-            else
-            {
-                pRank->value.totalmarks = -1;
-                return 1;
-            }
-        }
-        else
-        {
-            if (pRank->value.mark_overall >= 0 && pRank->value.mark_paper >= 0)
-            {
-                pRank->value.totalmarks = pRank->value.mark_overall + pRank->value.mark_paper;
-            }
-            // abort if marks are not valid
-            else
-            {
-                pRank->value.totalmarks = -1;
-                return 1;
-            }
+            return 1;
         }
         // init rank to 1
         pRank->value.rank_school = 1;
         pRank->value.rank_class = 1;
     }
 
-    // match type
-    if (p->value.id / 10000000 % 10 != pRank->value.id / 10000000 % 10)
+    if (p->value.id / 10000000 % 10 == pRank->value.id / 10000000 % 10 && // match type
+        p->value.totalmarks > pRank->value.totalmarks)                    // greater
     {
-        return 0;
-    }
-    // check if valid and greater
-    if (*pCurrentList == stu_undergraduate)
-    {
-        if (p->value.mark_math < 0 || p->value.mark_eng < 0 || p->value.mark_c < 0 ||
-            p->value.mark_math + p->value.mark_eng + p->value.mark_c <= pRank->value.totalmarks)
+        // found greater marks, rank +1
+        pRank->value.rank_school++;
+        // check if is same class
+        if (p->value.id / 100000000ULL == pRank->value.id / 100000000ULL && // year
+            strcmp(p->value.major, pRank->value.major) == 0 &&              // major
+            p->value.classid == pRank->value.classid)                       // class
         {
-            return 0;
+            pRank->value.rank_class++;
         }
-    }
-    else if (*pCurrentList == stu_postgraduate)
-    {
-        if (p->value.mark_overall < 0 || p->value.mark_paper < 0 ||
-            p->value.mark_overall + p->value.mark_paper <= pRank->value.totalmarks)
-        {
-            return 0;
-        }
-    }
-
-    pRank->value.rank_school++;
-    // check if is same class
-    if (p->value.id / 100000000ULL == pRank->value.id / 100000000ULL && // year
-        strcmp(p->value.major, pRank->value.major) == 0 &&              // major
-        p->value.classid == pRank->value.classid)                       // class
-    {
-        pRank->value.rank_class++;
     }
 
     return 0;
