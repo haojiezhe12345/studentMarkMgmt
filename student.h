@@ -58,9 +58,22 @@ int students_forEach(int (*callback)(node **, node *, int, va_list), ...)
     return 1;
 }
 
+// find student node by student id, output to `node **dest`
+// args: `unsigned long long id`, `node **dest`
+int student_getNodeById(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.id == va_arg(args, unsigned long long))
+    {
+        node **dest = va_arg(args, node **);
+        *dest = p;
+        return 1;
+    }
+    return 0;
+}
+
 int student_print(node **pCurrentList, node *p, int index, va_list args)
 {
-    printf("%llu\t%s\t%s\t%s\tClass %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
+    printf("%-14llu %-20s %-8s %-12s Class %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
     return 0;
 }
 
@@ -216,19 +229,6 @@ int student_marks_update(node **pCurrentList, node *p, int index, va_list args)
             reInputInt(&p->value.mark_overall, "Overall (leave blank for %d): ", 0, 100);
             reInputInt(&p->value.mark_paper, "Paper (leave blank for %d): ", 0, 100);
         }
-        return 1;
-    }
-    return 0;
-}
-
-// find student node by student id, output to `node **dest`
-// args: `unsigned long long id`, `node **dest`
-int student_getNodeById(node **pCurrentList, node *p, int index, va_list args)
-{
-    if (p->value.id == va_arg(args, unsigned long long))
-    {
-        node **dest = va_arg(args, node **);
-        *dest = p;
         return 1;
     }
     return 0;

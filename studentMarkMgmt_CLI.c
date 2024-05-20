@@ -14,11 +14,14 @@
 
 char allcmds[][16] = {
     "help",
+    "print",
     "ls",
     "list",
     "add",
     "edit",
     "delete",
+    "show",
+    "rank",
     "marks",
     "save",
     "load",
@@ -94,15 +97,24 @@ int main()
         if (strcmp(cmd, "help") == 0)
         {
             printf("help          Show help\n");
-            printf("ls, list      List students\n");
+            printf("print         Print all students (without paging)\n");
+            printf("ls, list      List students (with paging)\n");
             printf("add           Add student\n");
             printf("edit          Edit student info\n");
             printf("delete        Delete student\n");
+            printf("show          Show student info\n");
+            printf("rank          Show student's marks and ranks\n");
             printf("marks         Marks management\n");
             printf("save          Save databases to file\n");
             printf("load          Load databases from file\n");
             printf("quit, exit    Exit program\n");
             printf("\nNote: Short-handed commands are accepted\nFor example, \"a\" -> \"add\", \"d\" or \"del\" -> \"delete\"\n");
+        }
+
+        // student print
+        else if (strcmp(cmd, "print") == 0)
+        {
+            students_forEach(student_print);
         }
 
         // student list
@@ -156,7 +168,7 @@ int main()
                 for (int i = 0; i < size && nodes[i] != NULL; i++)
                 {
                     node *p = nodes[i];
-                    printf("%llu\t%s\t%s\t%s\tClass %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
+                    student_print(NULL, p, 0, "");
                 }
                 printf("\nArrow keys: Navigate    Home/End: First/Last Page    q: Quit");
                 // detect keyboard press
@@ -255,7 +267,7 @@ int main()
         else if (strcmp(cmd, "edit") == 0)
         {
             unsigned long long id;
-            if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
+            if (sscanf(cmds, "%*s %llu", &id) == 1)
             {
                 if (students_forEach(student_edit, id))
                 {
@@ -272,7 +284,7 @@ int main()
         else if (strcmp(cmd, "delete") == 0)
         {
             unsigned long long id;
-            if (sscanf(cmds, "%s %llu", cmd, &id) == 2)
+            if (sscanf(cmds, "%*s %llu", &id) == 1)
             {
                 if (students_forEach(student_delete_confirm, id))
                 {
@@ -282,6 +294,64 @@ int main()
             else
             {
                 printf("Usage: delete <Student ID>\n");
+            }
+        }
+
+        // student show
+        else if (strcmp(cmd, "show") == 0)
+        {
+            unsigned long long id;
+            if (sscanf(cmds, "%*s %llu", &id) == 1)
+            {
+                node *p;
+                if (students_forEach(student_getNodeById, id, &p))
+                {
+                    printf("Student not found\n");
+                }
+                else
+                {
+                    printf("Basic info:\n");
+                    printf("Type   : %s\n", p->value.id / 10000000 % 10 == 1 ? "Undergraduate" : "Postgraduate");
+                    printf("ID     : %llu\n", p->value.id);
+                    printf("Name   : %s\n", p->value.name);
+                    printf("Gender : %s\n", p->value.gender == 1 ? "Male" : "Female");
+                    printf("Major  : %s\n", p->value.major);
+                    printf("Class  : %d\n", p->value.classid);
+
+                    printf("\nMarks:\n");
+                    if (p->value.id / 10000000 % 10 == 1)
+                    {
+                        printf("Math:          %d\n", p->value.mark_math);
+                        printf("English:       %d\n", p->value.mark_eng);
+                        printf("C Programming: %d\n", p->value.mark_c);
+                    }
+                    else
+                    {
+                        printf("Overall: %d\n", p->value.mark_overall);
+                        printf("Paper:   %d\n", p->value.mark_paper);
+                    }
+                }
+            }
+            else
+            {
+                printf("Usage: show <Student ID>\n");
+            }
+        }
+
+        // show marks and ranks
+        else if (strcmp(cmd, "rank") == 0)
+        {
+            unsigned long long id;
+            if (sscanf(cmds, "%*s %llu", &id) == 1)
+            {
+                if (students_forEach(student_marks_show, id))
+                {
+                    printf("Student not found\n");
+                }
+            }
+            else
+            {
+                printf("Usage: rank <Student ID>\n");
             }
         }
 
