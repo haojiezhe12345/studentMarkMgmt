@@ -6,7 +6,7 @@
 
 #include "linkedList.h"
 #include "inputs.h"
-#include "student.h"
+#include "students.h"
 
 // db location
 #define db_undergraduate "db_undergraduate.bin"
@@ -88,6 +88,7 @@ int runCmd(const char *cmds, const char *cmd)
     // student print
     else if (strcmp(cmd, "print") == 0)
     {
+
         students_forEach(student_print);
     }
 

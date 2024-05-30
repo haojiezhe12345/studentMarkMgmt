@@ -6,7 +6,7 @@
 
 #include "linkedList.h"
 #include "inputs.h"
-#include "student.h"
+#include "students.h"
 
 // db location
 #define db_undergraduate "db_undergraduate.bin"
