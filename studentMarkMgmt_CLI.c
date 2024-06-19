@@ -259,7 +259,7 @@ int runCmd(const char *cmds, const char *cmd)
                 printf("\n\nAdding filters:\n");
                 int filter_class = -1;
                 int filter_fail_course = -1;
-                reInputInt(&filter_class, "Claas (leave blank for all): ", 1, 99);
+                reInputInt(&filter_class, "Class (leave blank for all): ", 1, 99);
                 if (head == stu_undergraduate)
                 {
                     reInputInt(&filter_fail_course, "Has the following course failed:\n1. Math\n2. English\n3. C Programming\nSelect one (leave blank for none): ", 1, 3);
@@ -273,10 +273,12 @@ int runCmd(const char *cmds, const char *cmd)
                 for (int i = 0; p != NULL;)
                 {
                     int del = 0;
+                    // filter by class
                     if (filter_class != -1 && p->value.classid != filter_class)
                     {
                         del = 1;
                     }
+                    // filter failed courses
                     if (filter_fail_course != -1)
                     {
                         if (head == stu_undergraduate)
@@ -490,6 +492,7 @@ int runCmd(const char *cmds, const char *cmd)
         char subcmds[][16] = {
             "show",
             "update",
+            "statistics",
         };
         strcpy(subcmd, matchCmd(subcmds, sizeof(subcmds) / sizeof(subcmds[0]), subcmd));
 
@@ -507,10 +510,76 @@ int runCmd(const char *cmds, const char *cmd)
                 printf("Student not found\n");
             }
         }
+        else if (paramsCount == 1 && strcmp(subcmd, "statistics") == 0)
+        {
+            printf("Choose a kind of statistics you want:\n1. Average marks of all classes in a course\n2. Student's gradings of a course in a class\n");
+            int kind = inputSelect("Choose an option: ", 2);
+            if (kind == 1)
+            {
+                printf("Choose a course:\n1. Math\n2. English\n3. C Programming\n4. Overall (Postgraduate)\n5. Paper (Postgraduate)\n");
+                int course = inputSelect("Choose a course: ", 5);
+                float classMarks[100] = {0};
+                int classStuCount[100] = {0};
+                node *p = course <= 3 ? stu_undergraduate : stu_postgraduate;
+                for (int i = 0; p != NULL; i++)
+                {
+                    int mark = getStudentMarkByIndex(p, course);
+                    if (mark != -1)
+                    {
+                        // add to the corresponding index of the arrays
+                        classMarks[p->value.classid] += (float)mark;
+                        classStuCount[p->value.classid]++;
+                    }
+                    p = p->next;
+                }
+                printf("\n");
+                for (int i = 0; i < 100; i++)
+                {
+                    if (classStuCount[i] > 0)
+                    {
+                        classMarks[i] /= (float)classStuCount[i];
+                        printf("Class %-2d: %.1f\n", i, classMarks[i]);
+                    }
+                }
+            }
+            else if (kind == 2)
+            {
+                printf("Choose a course:\n1. Math\n2. English\n3. C Programming\n4. Overall (Postgraduate)\n5. Paper (Postgraduate)\n");
+                int course = inputSelect("Choose a course: ", 5);
+                int classid = inputNum("Enter class: ", 1, 99);
+                int grades[5] = {0};
+                node *p = course <= 3 ? stu_undergraduate : stu_postgraduate;
+                for (int i = 0; p != NULL; i++)
+                {
+                    int mark = getStudentMarkByIndex(p, course);
+                    if (p->value.classid == classid && mark != -1)
+                    {
+                        if (mark >= 90)
+                            grades[0]++;
+                        else if (mark >= 80)
+                            grades[1]++;
+                        else if (mark >= 70)
+                            grades[2]++;
+                        else if (mark >= 60)
+                            grades[3]++;
+                        else
+                            grades[4]++;
+                    }
+                    p = p->next;
+                }
+                printf("\n");
+                printf("Excellent (>90) : %d\n", grades[0]);
+                printf("Good    (80-90) : %d\n", grades[1]);
+                printf("General (70-80) : %d\n", grades[2]);
+                printf("Pass    (60-70) : %d\n", grades[3]);
+                printf("Failed    (<60) : %d\n", grades[4]);
+            }
+        }
         else
         {
-            printf("marks show <Student ID>      Show student's marks and ranks\n");
+            printf("marks show <Student ID>      Show student's marks and ranks (same as 'rank <Student ID>')\n");
             printf("marks update <Student ID>    Update student's marks\n");
+            printf("marks statistics             Show marks statistics for a course / class\n");
         }
     }
 

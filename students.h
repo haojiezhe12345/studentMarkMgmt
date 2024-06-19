@@ -349,4 +349,28 @@ unsigned long long generateStudentID(int type, char *major, int classid)
     return id + getClassStudentCountByStudentId(id) + 1;
 }
 
+int getStudentMarkByIndex(node *p, int index)
+{
+    int mark;
+    switch (index)
+    {
+    case 1:
+        mark = p->value.mark_math;
+        break;
+    case 2:
+        mark = p->value.mark_eng;
+        break;
+    case 3:
+        mark = p->value.mark_c;
+        break;
+    case 4:
+        mark = p->value.mark_overall;
+        break;
+    case 5:
+        mark = p->value.mark_paper;
+        break;
+    }
+    return mark;
+}
+
 #endif
