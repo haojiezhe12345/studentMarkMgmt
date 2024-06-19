@@ -73,7 +73,7 @@ int student_getNodeById(node **pCurrentList, node *p, int index, va_list args)
 
 int student_getNodeByName(node **pCurrentList, node *p, int index, va_list args)
 {
-    if (strcmp(p->value.name, va_arg(args, char*)) == 0)
+    if (strcmp(p->value.name, va_arg(args, char *)) == 0)
     {
         node **dest = va_arg(args, node **);
         *dest = p;
@@ -85,12 +85,6 @@ int student_getNodeByName(node **pCurrentList, node *p, int index, va_list args)
 int student_print(node **pCurrentList, node *p, int index, va_list args)
 {
     printf("%-14llu %-20s %-8s %-12s Class %-5d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
-    return 0;
-}
-
-int student_print_with_totalmarks(node **pCurrentList, node *p, int index, va_list args)
-{
-    printf("%-14llu %-20s %-8s %-12s Class %-5d %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid, p->value.totalmarks);
     return 0;
 }
 

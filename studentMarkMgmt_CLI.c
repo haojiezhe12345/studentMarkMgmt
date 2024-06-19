@@ -12,6 +12,12 @@
 #define db_undergraduate "db_undergraduate.bin"
 #define db_postgraduate "db_postgraduate.bin"
 
+void saveDB()
+{
+    saveNodes(db_undergraduate, stu_undergraduate);
+    saveNodes(db_postgraduate, stu_postgraduate);
+}
+
 char allcmds[][16] = {
     "help",
     "print",
@@ -116,8 +122,8 @@ int runCmd(const char *cmds, const char *cmd)
         }
         else
         {
-            printf("ls undergraduate    List undergraduate students\n");
-            printf("ls postgraduate     List postgraduate students\n");
+            printf("ls u(ndergraduate)    List undergraduate students\n");
+            printf("ls p(ostgraduate)     List postgraduate students\n");
             return 0;
         }
 
@@ -151,15 +157,28 @@ int runCmd(const char *cmds, const char *cmd)
             // get nodes by page
             nodes = getPagedNodes(viewList, size, page);
             // print nodes
-            printf("Student ID     Name                 Gender   Major        Class       Marks\n");
-            printf("---------------------------------------------------------------------------\n");
+            if (head == stu_undergraduate)
+            {
+                printf("Student ID     Name                 Gender   Major        Class       Math  Eng   C     Total\n");
+                printf("---------------------------------------------------------------------------------------------\n");
+                //      202410010101   i am NO.1!           Male     major1       Class 11    100   100   100   100
+            }
+            else if (head == stu_postgraduate)
+            {
+                printf("Student ID     Name                 Gender   Major        Class       Overall  Paper  Total\n");
+                printf("-------------------------------------------------------------------------------------------\n");
+                //      202410010101   i am NO.1!           Male     major1       Class 11    100      100    100
+            }
             for (int i = 0; i < size && nodes[i] != NULL; i++)
             {
                 node *p = nodes[i];
-                student_print_with_totalmarks(NULL, p, 0, NULL);
+                if (head == stu_undergraduate)
+                    printf("%-14llu %-20s %-8s %-12s Class %-5d %-5d %-5d %-5d %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid, p->value.mark_math, p->value.mark_eng, p->value.mark_c, p->value.totalmarks);
+                else if (head == stu_postgraduate)
+                    printf("%-14llu %-20s %-8s %-12s Class %-5d %-8d %-6d %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid, p->value.mark_overall, p->value.mark_paper, p->value.totalmarks);
             }
-            printf("\nArrow keys: Navigate      Home/End: First/Last Page       z: Page size");
-            printf("\ns: Sort by    o: Sort order    f: Filter    r: Reset    q/Ctrl-C: Quit");
+            printf("\nArrow keys: Navigate        Home/End: First/Last Page         z: Page size");
+            printf("\ns: Sort by     o: Sort order     f: Filter     r: Reset     q/Ctrl-C: Quit");
 
             // detect keyboard press
             int ch = getch();
@@ -239,27 +258,61 @@ int runCmd(const char *cmds, const char *cmd)
             {
                 printf("\n\nAdding filters:\n");
                 int filter_class = -1;
+                int filter_fail_course = -1;
                 reInputInt(&filter_class, "Claas (leave blank for all): ", 1, 99);
+                if (head == stu_undergraduate)
+                {
+                    reInputInt(&filter_fail_course, "Has the following course failed:\n1. Math\n2. English\n3. C Programming\nSelect one (leave blank for none): ", 1, 3);
+                }
+                else if (head == stu_postgraduate)
+                {
+                    reInputInt(&filter_fail_course, "Has the following course failed:\n1. Ovrall\n2. Paper\nSelect one (leave blank for none): ", 1, 2);
+                }
                 // loop over `viewList` and apply filter
                 node *p = viewList;
                 for (int i = 0; p != NULL;)
                 {
-                    // save pNext before deleting node to avoid losing the next pointer
-                    node *pNext = p->next;
+                    int del = 0;
                     if (filter_class != -1 && p->value.classid != filter_class)
+                    {
+                        del = 1;
+                    }
+                    if (filter_fail_course != -1)
+                    {
+                        if (head == stu_undergraduate)
+                        {
+                            if (filter_fail_course == 1 && (p->value.mark_math < 0 || p->value.mark_math >= 60))
+                                del = 1;
+                            if (filter_fail_course == 2 && (p->value.mark_eng < 0 || p->value.mark_eng >= 60))
+                                del = 1;
+                            if (filter_fail_course == 3 && (p->value.mark_c < 0 || p->value.mark_c >= 60))
+                                del = 1;
+                        }
+                        else if (head == stu_postgraduate)
+                        {
+                            if (filter_fail_course == 1 && (p->value.mark_overall < 0 || p->value.mark_overall >= 60))
+                                del = 1;
+                            if (filter_fail_course == 2 && (p->value.mark_paper < 0 || p->value.mark_paper >= 60))
+                                del = 1;
+                        }
+                    }
+                    // assign pNext before deleting node to avoid losing the next pointer
+                    p = p->next;
+                    if (del)
                     {
                         deleteNodeAtIndex(&viewList, i);
                     }
                     else
                     {
+                        // index should be added only if node is not deleted
                         i++;
                     }
-                    p = pNext;
                 }
             }
             // reset view
             else if (ch == 'r')
             {
+                sortBy = NULL;
                 destroyList(&viewList);
                 viewList = cloneList(head);
             }
@@ -469,8 +522,7 @@ int runCmd(const char *cmds, const char *cmd)
 
     else if (strcmp(cmd, "save") == 0)
     {
-        saveNodes(db_undergraduate, stu_undergraduate);
-        saveNodes(db_postgraduate, stu_postgraduate);
+        saveDB();
     }
 
     else if (strcmp(cmd, "load") == 0)
@@ -494,6 +546,7 @@ int runCmd(const char *cmds, const char *cmd)
 
     else if (strcmp(cmd, "quit") == 0 || strcmp(cmd, "exit") == 0)
     {
+        saveDB();
         return 1;
     }
 
