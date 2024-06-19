@@ -41,7 +41,7 @@ unsigned long long inputNum(const char *msg, unsigned long long min, unsigned lo
         // str to int
         sscanf(str, "%llu", &num);
         // check range
-        if ((min <= num && num <= max))
+        if (min <= num && num <= max && *str != '\0')
         {
             break;
         }

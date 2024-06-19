@@ -250,15 +250,20 @@ void swapNodeValues(node **head, int index1, int index2)
     }
 }
 
-void bubbleSort(node **head)
+// sort a linked list by an `int` member value
+// `order`: `1`=Ascending, `2`=Descending
+void bubbleSortByIntValue(node **head, int *memberValue, int order)
 {
     node *p = *head;
+    size_t memberOffset = (size_t)memberValue - (size_t) & (**head).value;
     for (int i = 0; p->next != NULL; i++)
     {
         node *p1 = *head;
         for (int j = 0; p1->next != NULL; j++)
         {
-            if (p1->value.id > p1->next->value.id)
+            int v1 = *(int *)((size_t)&p1->value + memberOffset);
+            int v2 = *(int *)((size_t)&p1->next->value + memberOffset);
+            if ((order == 1 && v1 > v2) || (order == 2 && v1 < v2))
             {
                 swapNodeValues(head, j, j + 1);
             }

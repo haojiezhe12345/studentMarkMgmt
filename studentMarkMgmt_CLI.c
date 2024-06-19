@@ -88,7 +88,6 @@ int runCmd(const char *cmds, const char *cmd)
     // student print
     else if (strcmp(cmd, "print") == 0)
     {
-
         students_forEach(student_print);
     }
 
@@ -125,8 +124,13 @@ int runCmd(const char *cmds, const char *cmd)
         node **nodes;
         int size = 10;
         int page = 0;
+        // sort options
+        int *sortBy = NULL;
+        int sortOrder = 1;
+
         while (1)
         {
+            // get paging info
             int total = getNodesCount(head);
             if (page < 0)
             {
@@ -136,16 +140,23 @@ int runCmd(const char *cmds, const char *cmd)
             {
                 page = (total - 1) / size;
             }
+            printf("\nDisplaying %d - %d of %d\n\n", page * size + 1, (page + 1) * size, total);
+
+            // calculate marks
+            students_forEach(student_calc_totalmarks);
             // get nodes by page
             nodes = getPagedNodes(head, size, page);
-            printf("\nDisplaying %d - %d of %d\n\n", page * size + 1, (page + 1) * size, total);
             // print nodes
+            printf("Student ID     Name                 Gender   Major        Class       Marks\n");
+            printf("---------------------------------------------------------------------------\n");
             for (int i = 0; i < size && nodes[i] != NULL; i++)
             {
                 node *p = nodes[i];
-                student_print(NULL, p, 0, NULL);
+                student_print_with_totalmarks(NULL, p, 0, NULL);
             }
-            printf("\nArrow keys: Navigate    Home/End: First/Last Page    q: Quit");
+            printf("\nArrow keys: Navigate    Home/End: First/Last Page    z: Page size");
+            printf("\ns: Sort by    o: Sort order    f: Filter    q: Quit");
+
             // detect keyboard press
             int ch = getch();
             if (ch == 0 || ch == 224) // prefix for arrow keys
@@ -176,6 +187,44 @@ int runCmd(const char *cmds, const char *cmd)
                 case 81: // page down
                     page++;
                     break;
+                }
+            }
+            // page size
+            else if (ch == 'z')
+            {
+                printf("\n\n");
+                reInputInt(&size, "Input page size (leave blank for %d): ", 0, 1000);
+            }
+            // sorting
+            else if (ch == 's' || ch == 'o')
+            {
+                if (ch == 's')
+                {
+                    printf("\n\nSort by:\n1. Student ID\n2. Class\n3. Total marks\n");
+                    int order = inputSelect("Choose a sort key: ", 3);
+                    switch (order)
+                    {
+                    case 1:
+                        // WARNING: converting int64 to int32 may cause incorrect sort!
+                        // this will cause sorting regards only the first 4 bytes of an 8-byte integer,
+                        // in little-endian systems, they represent lower digits, while the big-endian's represent higher
+                        sortBy = (int *)&head->value.id;
+                        break;
+                    case 2:
+                        sortBy = &head->value.classid;
+                        break;
+                    case 3:
+                        sortBy = &head->value.totalmarks;
+                        break;
+                    }
+                }
+                if (ch == 'o')
+                {
+                    sortOrder = sortOrder == 1 ? 2 : 1;
+                }
+                if (sortBy)
+                {
+                    bubbleSortByIntValue(&head, sortBy, sortOrder);
                 }
             }
             else if (ch == 'q')

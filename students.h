@@ -84,7 +84,13 @@ int student_getNodeByName(node **pCurrentList, node *p, int index, va_list args)
 
 int student_print(node **pCurrentList, node *p, int index, va_list args)
 {
-    printf("%-14llu %-20s %-8s %-12s Class %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
+    printf("%-14llu %-20s %-8s %-12s Class %-5d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid);
+    return 0;
+}
+
+int student_print_with_totalmarks(node **pCurrentList, node *p, int index, va_list args)
+{
+    printf("%-14llu %-20s %-8s %-12s Class %-5d %d\n", p->value.id, p->value.name, p->value.gender == 1 ? "Male" : "Female", p->value.major, p->value.classid, p->value.totalmarks);
     return 0;
 }
 
@@ -132,6 +138,26 @@ int student_edit(node **pCurrentList, node *p, int index, va_list args)
         {
             reInputStr(p->value.direction, "Research direction (leave blank for %s): ", 64);
             reInputStr(p->value.tutor, "Tutor (leave blank for %s): ", 32);
+        }
+        return 1;
+    }
+    return 0;
+}
+
+int student_marks_update(node **pCurrentList, node *p, int index, va_list args)
+{
+    if (p->value.id == va_arg(args, unsigned long long))
+    {
+        if (*pCurrentList == stu_undergraduate)
+        {
+            reInputInt(&p->value.mark_math, "Math (leave blank for %d): ", 0, 100);
+            reInputInt(&p->value.mark_eng, "English (leave blank for %d): ", 0, 100);
+            reInputInt(&p->value.mark_c, "C Programming (leave blank for %d): ", 0, 100);
+        }
+        else if (*pCurrentList == stu_postgraduate)
+        {
+            reInputInt(&p->value.mark_overall, "Overall (leave blank for %d): ", 0, 100);
+            reInputInt(&p->value.mark_paper, "Paper (leave blank for %d): ", 0, 100);
         }
         return 1;
     }
@@ -220,26 +246,6 @@ int student_marks_show(node **pCurrentList, node *p, int index, va_list args)
         }
         students_forEach(student_marks_rank, p);
         printf("Total marks: %d (School rank: %d, Class rank: %d)\n", p->value.totalmarks, p->value.rank_school, p->value.rank_class);
-        return 1;
-    }
-    return 0;
-}
-
-int student_marks_update(node **pCurrentList, node *p, int index, va_list args)
-{
-    if (p->value.id == va_arg(args, unsigned long long))
-    {
-        if (*pCurrentList == stu_undergraduate)
-        {
-            reInputInt(&p->value.mark_math, "Math (leave blank for %d): ", 0, 100);
-            reInputInt(&p->value.mark_eng, "English (leave blank for %d): ", 0, 100);
-            reInputInt(&p->value.mark_c, "C Programming (leave blank for %d): ", 0, 100);
-        }
-        else if (*pCurrentList == stu_postgraduate)
-        {
-            reInputInt(&p->value.mark_overall, "Overall (leave blank for %d): ", 0, 100);
-            reInputInt(&p->value.mark_paper, "Paper (leave blank for %d): ", 0, 100);
-        }
         return 1;
     }
     return 0;
