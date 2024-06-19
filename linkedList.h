@@ -172,6 +172,18 @@ void deleteNodeAtIndex(node **head, int index)
     }
 }
 
+node *cloneList(node *head)
+{
+    node *newHead = NULL;
+    node *p = head;
+    while (p != NULL)
+    {
+        appendNode(&newHead, p->value);
+        p = p->next;
+    }
+    return newHead;
+}
+
 void destroyList(node **head)
 {
     node *p = *head;

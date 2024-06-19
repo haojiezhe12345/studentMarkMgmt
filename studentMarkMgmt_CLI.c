@@ -66,13 +66,14 @@ char *matchCmd(char cmdList[][16], int listSize, char *cmd)
     }
 }
 
+// returns non-zero on `exit` command
 int runCmd(const char *cmds, const char *cmd)
 {
     if (strcmp(cmd, "help") == 0)
     {
         printf("help          Show help\n");
-        printf("print         Print all students (without paging)\n");
-        printf("ls, list      List students (with paging)\n");
+        printf("print         Print all students\n");
+        printf("ls, list      List students (with paging, sorting & filtering)\n");
         printf("add           Add student\n");
         printf("edit          Edit student info\n");
         printf("delete        Delete student\n");
@@ -128,10 +129,15 @@ int runCmd(const char *cmds, const char *cmd)
         int *sortBy = NULL;
         int sortOrder = 1;
 
+        // calculate marks
+        students_forEach(student_calc_totalmarks);
+        // clone list for viewing, sorting & filtering, without affecting the original
+        node* viewList = cloneList(head);
+
         while (1)
         {
             // get paging info
-            int total = getNodesCount(head);
+            int total = getNodesCount(viewList);
             if (page < 0)
             {
                 page = 0;
@@ -142,10 +148,8 @@ int runCmd(const char *cmds, const char *cmd)
             }
             printf("\nDisplaying %d - %d of %d\n\n", page * size + 1, (page + 1) * size, total);
 
-            // calculate marks
-            students_forEach(student_calc_totalmarks);
             // get nodes by page
-            nodes = getPagedNodes(head, size, page);
+            nodes = getPagedNodes(viewList, size, page);
             // print nodes
             printf("Student ID     Name                 Gender   Major        Class       Marks\n");
             printf("---------------------------------------------------------------------------\n");
@@ -155,7 +159,7 @@ int runCmd(const char *cmds, const char *cmd)
                 student_print_with_totalmarks(NULL, p, 0, NULL);
             }
             printf("\nArrow keys: Navigate    Home/End: First/Last Page    z: Page size");
-            printf("\ns: Sort by    o: Sort order    f: Filter    q: Quit");
+            printf("\ns: Sort by    o: Sort order    f: Filter    q/Ctrl-C: Quit");
 
             // detect keyboard press
             int ch = getch();
@@ -208,13 +212,14 @@ int runCmd(const char *cmds, const char *cmd)
                         // WARNING: converting int64 to int32 may cause incorrect sort!
                         // this will cause sorting regards only the first 4 bytes of an 8-byte integer,
                         // in little-endian systems, they represent lower digits, while the big-endian's represent higher
-                        sortBy = (int *)&head->value.id;
+                        sortBy = (int *)&viewList->value.id;
                         break;
                     case 2:
-                        sortBy = &head->value.classid;
+                        sortBy = &viewList->value.classid;
                         break;
                     case 3:
-                        sortBy = &head->value.totalmarks;
+                        sortBy = &viewList->value.totalmarks;
+                        sortOrder = 2;
                         break;
                     }
                 }
@@ -224,13 +229,15 @@ int runCmd(const char *cmds, const char *cmd)
                 }
                 if (sortBy)
                 {
-                    bubbleSortByIntValue(&head, sortBy, sortOrder);
+                    bubbleSortByIntValue(&viewList, sortBy, sortOrder);
                 }
             }
-            else if (ch == 'q')
+            // free the `viewList` and quit
+            else if (ch == 'q' || ch == 3)
             {
                 printf("\n");
-                break;
+                destroyList(&viewList);
+                return 0;
             }
             printf("\n");
         }
