@@ -132,7 +132,7 @@ int runCmd(const char *cmds, const char *cmd)
         // calculate marks
         students_forEach(student_calc_totalmarks);
         // clone list for viewing, sorting & filtering, without affecting the original
-        node* viewList = cloneList(head);
+        node *viewList = cloneList(head);
 
         while (1)
         {
@@ -158,8 +158,8 @@ int runCmd(const char *cmds, const char *cmd)
                 node *p = nodes[i];
                 student_print_with_totalmarks(NULL, p, 0, NULL);
             }
-            printf("\nArrow keys: Navigate    Home/End: First/Last Page    z: Page size");
-            printf("\ns: Sort by    o: Sort order    f: Filter    q/Ctrl-C: Quit");
+            printf("\nArrow keys: Navigate      Home/End: First/Last Page       z: Page size");
+            printf("\ns: Sort by    o: Sort order    f: Filter    r: Reset    q/Ctrl-C: Quit");
 
             // detect keyboard press
             int ch = getch();
@@ -213,9 +213,11 @@ int runCmd(const char *cmds, const char *cmd)
                         // this will cause sorting regards only the first 4 bytes of an 8-byte integer,
                         // in little-endian systems, they represent lower digits, while the big-endian's represent higher
                         sortBy = (int *)&viewList->value.id;
+                        sortOrder = 1;
                         break;
                     case 2:
                         sortBy = &viewList->value.classid;
+                        sortOrder = 1;
                         break;
                     case 3:
                         sortBy = &viewList->value.totalmarks;
@@ -231,6 +233,35 @@ int runCmd(const char *cmds, const char *cmd)
                 {
                     bubbleSortByIntValue(&viewList, sortBy, sortOrder);
                 }
+            }
+            // filter
+            else if (ch == 'f')
+            {
+                printf("\n\nAdding filters:\n");
+                int filter_class = -1;
+                reInputInt(&filter_class, "Claas (leave blank for all): ", 1, 99);
+                // loop over `viewList` and apply filter
+                node *p = viewList;
+                for (int i = 0; p != NULL;)
+                {
+                    // save pNext before deleting node to avoid losing the next pointer
+                    node *pNext = p->next;
+                    if (filter_class != -1 && p->value.classid != filter_class)
+                    {
+                        deleteNodeAtIndex(&viewList, i);
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                    p = pNext;
+                }
+            }
+            // reset view
+            else if (ch == 'r')
+            {
+                destroyList(&viewList);
+                viewList = cloneList(head);
             }
             // free the `viewList` and quit
             else if (ch == 'q' || ch == 3)
